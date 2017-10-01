@@ -1,0 +1,33 @@
+{
+    "name":                 "descendent",
+    "version":              "9.9.9",
+    "description":
+
+      "Route messages through a process hierarchy using Node.js IPC.",
+
+    "keywords":
+    [
+                            "comparator", "sort"
+    ],
+    "author":               "Alan Gutierrez <alan@prettyrobots.com>",
+    "homepage":             "https://github.com/bigeasy/descendent",
+    "bugs":                 "https://github.com/bigeasy/descendent/issues",
+    "license":              "MIT",
+    "repository":
+    {
+                            "type": "git",
+                            "url": "http://github.com/bigeasy/descendent.git"
+    },
+    "dependencies":
+    {
+    },
+    "devDependencies":
+    {
+                            "proof":                        "3.0.x"
+    },
+    "main":                 "descendent",
+    "scripts":
+    {
+                            "test": "proof platform win32 && proof test */*.t.js || t/test"
+    }
+}
