@@ -2,14 +2,16 @@ var cadence = require('extant')
 var util = require('util')
 var events = require('events')
 
-function Descendent (process) {
+function Descendent (process, namespace) {
     var descendent = this
     this._process = process
+    this._namespace = namespace
     this._children = {}
     this._process.on('message', this._listener = function (message) {
         var vargs = Array.prototype.slice.call(arguments)
         if (
             message.module == 'descendent' &&
+            message.namespace == descendent._namespace &&
             Array.isArray(message.to) &&
             Array.isArray(message.path)
         ) {
@@ -50,6 +52,7 @@ Descendent.prototype.addChild = function (child, cookie) {
             var vargs = Array.prototype.slice.call(arguments)
             if (
                 message.module == 'descendent' &&
+                message.namespace == descendent._namespace &&
                 typeof message.to == 'number' &&
                 Array.isArray(message.path)
             ) {
@@ -86,6 +89,7 @@ Descendent.prototype.up = function (pid, name, message) {
         var vargs = Array.prototype.slice.call(arguments, 2)
         vargs[0] = {
             module: 'descendent',
+            namespace: this._namespace,
             name: name,
             to: pid,
             path: [ this._process.pid ],
@@ -99,6 +103,7 @@ Descendent.prototype.down = function (path, name, message) {
     var vargs = Array.prototype.slice.call(arguments, 2)
     var envelope = vargs[0] = {
         module: 'descendent',
+        namespace: this._namespace,
         name: name,
         to: path.slice(),
         path: [],
