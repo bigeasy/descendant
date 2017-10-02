@@ -10,7 +10,6 @@ function prove (okay) {
     }, {
         vargs: [{
             module: 'descendent',
-            namespace: 'namespace',
             name: 'hello:world',
             to: 0,
             path: [ 1 ],
@@ -20,7 +19,6 @@ function prove (okay) {
     }, {
         vargs: [{
             module: 'descendent',
-            namespace: 'namespace',
             to: 0,
             path: [ 1, 2 ],
             body: 1
@@ -32,7 +30,6 @@ function prove (okay) {
     }, {
         vargs: [{
             module: 'descendent',
-            namespace: 'namespace',
             name: 'hello:world',
             to: [],
             path: [ 1 ],
@@ -48,7 +45,6 @@ function prove (okay) {
     }, {
         vargs: [{
             module: 'descendent',
-            namespace: 'namespace',
             name: 'hello:world',
             to: [ 3 ],
             path: [ 1 ],
@@ -58,7 +54,6 @@ function prove (okay) {
     }, {
         vargs: [{
             module: 'descendent',
-            namespace: 'namespace',
             name: 'hello:world',
             to: [ 3 ],
             path: [ 1 ],
@@ -75,27 +70,27 @@ function prove (okay) {
     // Send messages past the parent that should do nothing.
     var parent = new events.EventEmitter
     parent.pid = 1
-    var descendent = new Descendent(parent, 'namespace')
+    var descendent = new Descendent(parent)
     descendent.up(0, 'hello:world', 1)
     var child = new events.EventEmitter
     child.pid = 2
     descendent.addChild(child, 2)
-    child.emit('message', { module: 'descendent', namespace: 'namespace', to: 3, path: [] })
+    child.emit('message', { module: 'descendent', to: 3, path: [] })
 
     // Send a message that defaults to the parent.
     descendent.on('hello:world', asExpected)
-    child.emit('message', { module: 'descendent', namespace: 'namespace', name: 'hello:world', to: 0, path: [ 2 ], body: 1 })
+    child.emit('message', { module: 'descendent', name: 'hello:world', to: 0, path: [ 2 ], body: 1 })
 
     // Send message up out of parent.
     var parent = new events.EventEmitter
     parent.pid = 1
     parent.send = asExpected
-    var descendent = new Descendent(parent, 'namespace')
+    var descendent = new Descendent(parent)
     descendent.up(0, 'hello:world', 1)
     var child = new events.EventEmitter
     child.pid = 2
     descendent.addChild(child, 2)
-    child.emit('message', { module: 'descendent', namespace: 'namespace', to: 0, path: [ 2 ], body: 1 })
+    child.emit('message', { module: 'descendent', to: 0, path: [ 2 ], body: 1 })
 
     // Send a message up and out as a non-descendent message.
     descendent.on('up', asExpected)
@@ -106,7 +101,6 @@ function prove (okay) {
     // This one goes nowhere.
     parent.emit('message', {
         module: 'descendent',
-        namespace: 'namespace',
         to: [ 3 ],
         path: [],
         name: 'hello:world',
@@ -115,7 +109,6 @@ function prove (okay) {
     // This one goes to the child.
     parent.emit('message', {
         module: 'descendent',
-        namespace: 'namespace',
         to: [ 2 ],
         path: [],
         name: 'hello:world',
@@ -125,7 +118,6 @@ function prove (okay) {
     descendent.on('hello:world', asExpected)
     parent.emit('message', {
         module: 'descendent',
-        namespace: 'namespace',
         to: [],
         path: [ 0 ],
         name: 'hello:world',
