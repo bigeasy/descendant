@@ -91,7 +91,7 @@ Descendent.prototype.up = function (pid, name, message) {
             path: [ this._process.pid ],
             body: message
         }
-        this._process.send.apply(this.process, vargs)
+        this._process.send.apply(this._process, vargs)
     }
 }
 
