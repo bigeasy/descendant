@@ -6,6 +6,7 @@ function Descendent (process) {
     var descendent = this
     this._process = process
     this._children = {}
+    this._counter = 1
     this._process.on('message', this._listener = function (message) {
         var vargs = Array.prototype.slice.call(arguments)
         if (
@@ -40,6 +41,16 @@ Descendent.prototype.destroy = function () {
     Object.keys(this._children).forEach(function (pid) {
         this.removeChild(this._children[pid].child)
     }, this)
+}
+
+Descendent.prototype.decrement = function () {
+    if (--this._counter == 0) {
+        this.destroy()
+    }
+}
+
+Descendent.prototype.increment = function () {
+    this._counter++
 }
 
 Descendent.prototype.addChild = function (child, cookie) {

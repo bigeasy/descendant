@@ -130,5 +130,7 @@ function prove (okay) {
     descendent.down([ 1, 2, 3 ], 'hello:world', 1)
     descendent.down([ 2, 3 ], 'hello:world', 1)
 
-    descendent.destroy()
+    descendent.increment()
+    descendent.decrement()
+    descendent.decrement()
 }
