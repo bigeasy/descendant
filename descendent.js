@@ -60,7 +60,7 @@ Descendent.prototype.addChild = function (child, cookie) {
                     (message.to == 0 && descendent._process.send == null)
                 ) {
                     vargs[0] = message.body
-                    vargs.unshift(message.name, cookie)
+                    vargs.unshift(message.name, message.path, cookie)
                     descendent.emit.apply(descendent, vargs)
                 } else if (descendent._process.send) {
                     vargs[0] = message

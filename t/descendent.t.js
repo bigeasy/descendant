@@ -5,7 +5,7 @@ function prove (okay) {
     var events = require('events')
 
     var expect = [{
-        vargs: [ 2, 1 ],
+        vargs: [ [ 1, 2 ], 2, 1 ],
         message: 'to top'
     }, {
         vargs: [{
