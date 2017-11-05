@@ -1,4 +1,4 @@
-require('proof')(9, prove)
+require('proof')(10, prove)
 
 function prove (okay) {
     var Descendent = require('..')
@@ -60,6 +60,9 @@ function prove (okay) {
             body: 1
         }],
         message: 'down method message'
+    }, {
+        vargs: [ [ 1 ], 1 ],
+        message: 'across'
     }]
 
     function asExpected (value) {
@@ -129,6 +132,7 @@ function prove (okay) {
 
     descendent.down([ 1, 2, 3 ], 'hello:world', 1)
     descendent.down([ 2, 3 ], 'hello:world', 1)
+    descendent.across('hello:world', 1)
 
     descendent.increment()
     descendent.decrement()

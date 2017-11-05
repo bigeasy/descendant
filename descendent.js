@@ -121,4 +121,17 @@ Descendent.prototype.down = function (path, name, message) {
     this._listener.apply(null, vargs)
 }
 
+Descendent.prototype.across = function (name, message) {
+    var vargs = Array.prototype.slice.call(arguments, 1)
+    var envelope = vargs[0] = {
+        module: 'descendent',
+        name: name,
+        to: [],
+        path: [],
+        body: message
+    }
+    vargs.unshift('message')
+    this._process.emit.apply(this._process, vargs)
+}
+
 module.exports = Descendent
