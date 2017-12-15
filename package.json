@@ -7,7 +7,7 @@
 
     "keywords":
     [
-                            "comparator", "sort"
+                            "socket", "ipc"
     ],
     "author":               "Alan Gutierrez <alan@prettyrobots.com>",
     "homepage":             "https://github.com/bigeasy/descendent",
