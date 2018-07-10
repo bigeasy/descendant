@@ -118,6 +118,7 @@ Descendent.prototype.up = function (pid, name, message) {
         var vargs = Array.prototype.slice.call(arguments, 2)
         vargs[0] = {
             module: 'descendent',
+            method: 'route',
             name: name,
             to: pid,
             path: [ this._process.pid ],
@@ -131,6 +132,7 @@ Descendent.prototype.down = function (path, name, message) {
     var vargs = Array.prototype.slice.call(arguments, 2)
     var envelope = vargs[0] = {
         module: 'descendent',
+        method: 'route',
         name: name,
         to: path.slice(),
         path: [],
@@ -146,6 +148,7 @@ Descendent.prototype.across = function (name, message) {
     var vargs = Array.prototype.slice.call(arguments, 1)
     var envelope = vargs[0] = {
         module: 'descendent',
+        method: 'route',
         name: name,
         to: [],
         path: [],

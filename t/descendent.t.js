@@ -10,6 +10,7 @@ function prove (okay) {
     }, {
         vargs: [{
             module: 'descendent',
+            method: 'route',
             name: 'hello:world',
             to: 0,
             path: [ 1 ],
@@ -55,6 +56,7 @@ function prove (okay) {
     }, {
         vargs: [{
             module: 'descendent',
+            method: 'route',
             name: 'hello:world',
             to: [ 3 ],
             path: [ 1 ],
@@ -64,6 +66,7 @@ function prove (okay) {
     }, {
         vargs: [{
             module: 'descendent',
+            method: 'route',
             name: 'hello:world',
             to: [ 3 ],
             path: [ 1 ],
