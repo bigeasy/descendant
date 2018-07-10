@@ -23,8 +23,14 @@ function Descendent (process) {
             message = JSON.parse(JSON.stringify(message))
             message.path.push(descendent._process.pid)
             if (message.to.length == 0) {
-                vargs[0] = message.body
-                vargs.unshift(message.name, message.path)
+                vargs[0] = {
+                    module: 'descendent',
+                    method: 'route',
+                    name: message.name,
+                    path: message.path,
+                    body: message.body
+                }
+                vargs.unshift(message.name)
                 descendent.emit.apply(descendent, vargs)
             } else {
                 var entry = descendent._children[message.to[0]]
@@ -81,13 +87,16 @@ Descendent.prototype.addChild = function (child, cookie) {
                 Array.isArray(message.path)
             ) {
                 message = JSON.parse(JSON.stringify(message))
+                if (message.path.length == 1) {
+                    message.cookie = coalesce(cookie)
+                }
                 message.path.unshift(descendent._process.pid)
                 if (
                     message.to == descendent._process.pid ||
                     (message.to == 0 && descendent._process.send == null)
                 ) {
-                    vargs[0] = message.body
-                    vargs.unshift(message.name, message.path, cookie)
+                    vargs[0] = message
+                    vargs.unshift(message.name)
                     descendent.emit.apply(descendent, vargs)
                 } else if (descendent._process.send) {
                     vargs[0] = message

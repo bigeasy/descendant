@@ -5,7 +5,15 @@ function prove (okay) {
     var events = require('events')
 
     var expect = [{
-        vargs: [ [ 1, 2 ], 2, 'to top' ],
+        vargs: [{
+            module: 'descendent',
+            method: 'route',
+            name: 'hello:world',
+            to: 0,
+            body: 'to top',
+            path: [ 1, 2 ],
+            cookie: 2
+        }],
         message: 'to top'
     }, {
         vargs: [{
@@ -23,7 +31,8 @@ function prove (okay) {
             method: 'route',
             to: 0,
             path: [ 1, 2 ],
-            body: 'child up and out'
+            body: 'child up and out',
+            cookie: 2
         }],
         message: 'child up and out'
     }, {
@@ -46,7 +55,13 @@ function prove (okay) {
         }],
         message: 'parent to child'
     }, {
-        vargs: [ [ 0, 1 ], 'down received' ],
+        vargs: [{
+            module: 'descendent',
+            method: 'route',
+            name: 'hello:world',
+            path: [ 0, 1 ],
+            body: 'down received'
+        }],
         message: 'down received'
     }, {
         vargs: [{
@@ -76,7 +91,13 @@ function prove (okay) {
         }],
         message: 'down without self'
     }, {
-        vargs: [ [ 1 ], 1 ],
+        vargs: [{
+            module: 'descendent',
+            method: 'route',
+            name: 'hello:world',
+            path: [ 1 ],
+            body: 1
+        }],
         message: 'across'
     }]
 
