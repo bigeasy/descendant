@@ -119,6 +119,7 @@ function prove (okay) {
     // This one goes nowhere.
     parent.emit('message', {
         module: 'descendent',
+        method: 'route',
         to: [ 3 ],
         path: [],
         name: 'hello:world',
