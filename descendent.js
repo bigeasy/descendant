@@ -76,6 +76,7 @@ Descendent.prototype.addChild = function (child, cookie) {
             var vargs = Array.prototype.slice.call(arguments)
             if (
                 message.module == 'descendent' &&
+                message.method == 'route' &&
                 typeof message.to == 'number' &&
                 Array.isArray(message.path)
             ) {
