@@ -1,6 +1,8 @@
 var util = require('util')
 var events = require('events')
 
+var coalesce = require('extant')
+
 function Descendent (process) {
     var descendent = this
     this._process = process
@@ -77,7 +79,14 @@ Descendent.prototype.addChild = function (child, cookie) {
                     descendent._process.send.apply(descendent._process, vargs)
                 }
             } else {
-                vargs.unshift('up', cookie)
+                vargs[0] = {
+                    module: 'descendent',
+                    method: 'up',
+                    path: [ descendent._process.pid, child.pid ],
+                    cookie: coalesce(cookie),
+                    body: message
+                }
+                vargs.unshift('up')
                 descendent.emit.apply(descendent, vargs)
             }
         }

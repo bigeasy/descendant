@@ -25,7 +25,13 @@ function prove (okay) {
         }],
         message: 'child up and out'
     }, {
-        vargs: [ 2, { a: 1 } ],
+        vargs: [{
+            module: 'descendent',
+            path: [ 1, 2 ],
+            method: 'up',
+            cookie: 2,
+            body: { a: 1 }
+        }],
         message: 'up message'
     }, {
         vargs: [{
