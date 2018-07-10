@@ -37,14 +37,15 @@ function prove (okay) {
     }, {
         vargs: [{
             module: 'descendent',
+            method: 'route',
             name: 'hello:world',
             to: [],
             path: [ 1 ],
-            body: 1
+            body: 'parent to child'
         }],
         message: 'parent to child'
     }, {
-        vargs: [ [ 0, 1 ], 1 ],
+        vargs: [ [ 0, 1 ], 'down received' ],
         message: 'down received'
     }, {
         vargs: [{
@@ -60,9 +61,9 @@ function prove (okay) {
             name: 'hello:world',
             to: [ 3 ],
             path: [ 1 ],
-            body: 1
+            body: 'down include self'
         }],
-        message: 'down method message'
+        message: 'down include self'
     }, {
         vargs: [{
             module: 'descendent',
@@ -70,9 +71,9 @@ function prove (okay) {
             name: 'hello:world',
             to: [ 3 ],
             path: [ 1 ],
-            body: 1
+            body: 'down without self'
         }],
-        message: 'down method message'
+        message: 'down without self'
     }, {
         vargs: [ [ 1 ], 1 ],
         message: 'across'
@@ -125,26 +126,29 @@ function prove (okay) {
     // This one goes to the child.
     parent.emit('message', {
         module: 'descendent',
+        method: 'route',
         to: [ 2 ],
         path: [],
         name: 'hello:world',
-        body: 1
+        body: 'parent to child'
     })
     // This arrives at the descendent.
     descendent.on('hello:world', asExpected)
     parent.emit('message', {
         module: 'descendent',
+        method: 'route',
         to: [],
         path: [ 0 ],
         name: 'hello:world',
-        body: 1
+        body: 'down received'
     })
     // Non-descendent message coming down.
     descendent.on('down', asExpected)
     parent.emit('message', 3)
 
-    descendent.down([ 1, 2, 3 ], 'hello:world', 1)
-    descendent.down([ 2, 3 ], 'hello:world', 1)
+    descendent.down([ 1, 2, 3 ], 'hello:world', 'down include self')
+    descendent.down([ 2, 3 ], 'hello:world', 'down without self')
+
     descendent.across('hello:world', 1)
 
     descendent.increment()

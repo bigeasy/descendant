@@ -16,6 +16,7 @@ function Descendent (process) {
         var vargs = Array.prototype.slice.call(arguments)
         if (
             message.module == 'descendent' &&
+            message.method == 'route' &&
             Array.isArray(message.to) &&
             Array.isArray(message.path)
         ) {
