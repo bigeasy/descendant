@@ -3,6 +3,10 @@ var events = require('events')
 
 var coalesce = require('extant')
 
+// TODO Could use `-1` to mean go up one. `0` means root. Or else `-Infinity`
+// means to the root. No, `0` becuase `-Infinity` will not parse. Overshoot and
+// it stops at the root.
+
 function Descendent (process) {
     var descendent = this
     this._process = process
@@ -30,7 +34,16 @@ function Descendent (process) {
                 }
             }
         } else {
-            descendent.emit.apply(descendent, [ 'down' ].concat(vargs))
+            // We've made `"down"` a wrapped message to be consistent with
+            // `"up"`, even though we don't really add any meaninful information
+            // to the envelope.
+            vargs[0] = {
+                module: 'descendent',
+                method: 'down',
+                body: message
+            }
+            vargs.unshift('down')
+            descendent.emit.apply(descendent, vargs)
         }
     })
     events.EventEmitter.call(this)

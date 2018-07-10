@@ -46,7 +46,11 @@ function prove (okay) {
         vargs: [ [ 0, 1 ], 1 ],
         message: 'down received'
     }, {
-        vargs: [ 3 ],
+        vargs: [{
+            module: 'descendent',
+            method: 'down',
+            body: 3
+        }],
         message: 'down non-descent message'
     }, {
         vargs: [{
