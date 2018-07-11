@@ -90,6 +90,13 @@ Descendent.prototype.addChild = function (child, cookie) {
                 if (message.path.length == 1) {
                     message.cookie = coalesce(cookie)
                 }
+                // TODO Looks like go to root doesn't mean anything because we
+                // could be running underneath a monitor of some sort, so what
+                // is the root? We should always specify a PID for the
+                // destination, which can be set in an environment variable. We
+                // could visit everyone on the way up, but if we have a handle
+                // and a visitor consumes it, but then we propagate it, then the
+                // visitor loses the handle.
                 message.path.unshift(descendent._process.pid)
                 if (
                     message.to == descendent._process.pid ||
