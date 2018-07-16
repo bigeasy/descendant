@@ -99,8 +99,7 @@ Descendent.prototype.addChild = function (child, cookie) {
                 // visitor loses the handle.
                 message.path.unshift(descendent._process.pid)
                 if (
-                    message.to == descendent._process.pid ||
-                    (message.to == 0 && descendent._process.send == null)
+                    message.to == descendent._process.pid
                 ) {
                     vargs[0] = message
                     vargs.unshift(message.name)

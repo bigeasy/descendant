@@ -9,7 +9,7 @@ function prove (okay) {
             module: 'descendent',
             method: 'route',
             name: 'hello:world',
-            to: 0,
+            to: 1,
             body: 'to top',
             path: [ 1, 2 ],
             cookie: 2
@@ -118,7 +118,7 @@ function prove (okay) {
 
     // Send a message that defaults to the parent.
     descendent.on('hello:world', asExpected)
-    child.emit('message', { module: 'descendent', method: 'route', name: 'hello:world', to: 0, path: [ 2 ], body: 'to top' })
+    child.emit('message', { module: 'descendent', method: 'route', name: 'hello:world', to: 1, path: [ 2 ], body: 'to top' })
 
     // Send message up out of parent.
     var parent = new events.EventEmitter
