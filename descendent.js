@@ -4,8 +4,8 @@ var events = require('events')
 var coalesce = require('extant')
 
 // TODO Could use `-1` to mean go up one. `0` means root. Or else `-Infinity`
-// means to the root. No, `0` becuase `-Infinity` will not parse. Overshoot and
-// it stops at the root.
+// means to the root. No, `0` because `-Infinity` is not valid JSON. Overshoot
+// and it stops at the root.
 
 function Descendent (process) {
     var descendent = this
@@ -43,8 +43,8 @@ function Descendent (process) {
             }
         } else {
             // We've made `"down"` a wrapped message to be consistent with
-            // `"up"`, even though we don't really add any meaninful information
-            // to the envelope.
+            // `"up"`, even though we don't really add any meaningful
+            // information to the envelope.
             vargs[0] = {
                 module: 'descendent',
                 method: 'down',
@@ -167,6 +167,10 @@ Descendent.prototype.up = function (to, name, message) {
     }
 }
 
+// Send a message down to a child. Path is the full path to the child with an
+// entry for each process in the path to the child, so that we are able to
+// address children of children and their children and so on. The `name` is the
+// name of the event emitted on the `Descendent` object in the child.
 Descendent.prototype.down = function (path, name, message) {
     var vargs = Array.prototype.slice.call(arguments, 2)
     var envelope = vargs[0] = {
@@ -184,6 +188,9 @@ Descendent.prototype.down = function (path, name, message) {
     this._listener.apply(null, vargs)
 }
 
+// Useful for unit testing, sending a message across means sending it directly.
+// We can't just use `down` nor `up` because they will remove a reference to
+// self as a convenience.
 Descendent.prototype.across = function (name, message) {
     var vargs = Array.prototype.slice.call(arguments, 1)
     var envelope = vargs[0] = {
