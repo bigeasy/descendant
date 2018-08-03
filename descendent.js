@@ -83,27 +83,45 @@ Descendent.prototype.addChild = function (child, cookie) {
             if (
                 message.module == 'descendent' &&
                 message.method == 'route' &&
-                typeof message.to == 'number' &&
+                Array.isArray(message.to) &&
                 Array.isArray(message.path)
             ) {
                 message = JSON.parse(JSON.stringify(message))
                 if (message.path.length == 1) {
                     message.cookie = coalesce(cookie)
                 }
-                // TODO Looks like go to root doesn't mean anything because we
-                // could be running underneath a monitor of some sort, so what
-                // is the root? We should always specify a PID for the
-                // destination, which can be set in an environment variable. We
-                // could visit everyone on the way up, but if we have a handle
-                // and a visitor consumes it, but then we propagate it, then the
-                // visitor loses the handle.
+                // Was using zero to mean go to the root, but that doesn't mean
+                // anything because we could be running underneath a Node.js
+                // supervisor of some sort that enabled `'ipc'`, so is that
+                // anonymous process the root? We should always specify a PID
+                // for the destination, which can be set in an environment
+                // variable. We could visit everyone on the way up, but if we
+                // have a handle and a visitor consumes it, but then we
+                // propagate it, then the visitor loses the handle. Well, we
+                // could assert that if we're going up with `0` that no handle
+                // is passed, so we could revisit this.
                 message.path.unshift(descendent._process.pid)
                 if (
-                    message.to == descendent._process.pid
+                    message.to[0] == descendent._process.pid
                 ) {
-                    vargs[0] = message
-                    vargs.unshift(message.name)
-                    descendent.emit.apply(descendent, vargs)
+                    // TODO What sort of path information do you add to a
+                    // redirect?
+                    if (message.to.length == 1) {
+                        vargs[0] = message
+                        vargs.unshift(message.name)
+                        descendent.emit.apply(descendent, vargs)
+                    } else {
+                        vargs[0] = {
+                            module: 'descendent',
+                            method: 'route',
+                            name: message.name,
+                            to: message.to.slice(1),
+                            from: message.path.slice(),
+                            path: message.path.slice(),
+                            body: message.body
+                        }
+                        descendent._listener.apply(null, vargs)
+                    }
                 } else if (descendent._process.send) {
                     vargs[0] = message
                     descendent._process.send.apply(descendent._process, vargs)
@@ -130,14 +148,17 @@ Descendent.prototype.removeChild = function (child) {
     entry.child.removeListener('message', entry.listener)
 }
 
-Descendent.prototype.up = function (pid, name, message) {
+Descendent.prototype.up = function (to, name, message) {
     if (this._process.send) {
         var vargs = Array.prototype.slice.call(arguments, 2)
+        if (!Array.isArray(to)) {
+            to = [ to ]
+        }
         vargs[0] = {
             module: 'descendent',
             method: 'route',
             name: name,
-            to: pid,
+            to: to,
             path: [ this._process.pid ],
             body: message
         }
@@ -152,6 +173,7 @@ Descendent.prototype.down = function (path, name, message) {
         method: 'route',
         name: name,
         to: path.slice(),
+        from: [ this._process.pid ],
         path: [],
         body: message
     }
