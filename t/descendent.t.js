@@ -11,7 +11,7 @@ function prove (okay) {
             name: 'hello:world',
             to: [ 1 ],
             body: 'to top',
-            path: [ 1, 2 ],
+            from: [ 1, 2 ],
             cookie: 2
         }],
         message: 'to top'

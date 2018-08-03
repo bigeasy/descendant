@@ -108,7 +108,15 @@ Descendent.prototype.addChild = function (child, cookie) {
                     // TODO What sort of path information do you add to a
                     // redirect?
                     if (message.to.length == 1) {
-                        vargs[0] = message
+                        vargs[0] = {
+                            module: 'descendent',
+                            method: 'route',
+                            name: message.name,
+                            to: message.to,
+                            from: message.path,
+                            body: message.body,
+                            cookie: message.cookie
+                        }
                         vargs.unshift(message.name)
                         descendent.emit.apply(descendent, vargs)
                     } else {
