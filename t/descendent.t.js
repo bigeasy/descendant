@@ -49,7 +49,7 @@ function prove (okay) {
     }, {
         vargs: [{
             module: 'descendent',
-            path: [ 1, 2 ],
+            from: [ 1, 2 ],
             method: 'up',
             cookie: 2,
             body: { a: 1 }

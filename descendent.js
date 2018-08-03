@@ -131,7 +131,7 @@ Descendent.prototype.addChild = function (child, cookie) {
                 vargs[0] = {
                     module: 'descendent',
                     method: 'up',
-                    path: [ descendent._process.pid, child.pid ],
+                    from: [ descendent._process.pid, child.pid ],
                     cookie: coalesce(cookie),
                     body: message
                 }
