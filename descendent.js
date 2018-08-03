@@ -27,7 +27,8 @@ function Descendent (process) {
                     module: 'descendent',
                     method: 'route',
                     name: message.name,
-                    path: message.path,
+                    from: message.from,
+                    to: message.path,
                     body: message.body
                 }
                 vargs.unshift(message.name)
@@ -189,6 +190,7 @@ Descendent.prototype.across = function (name, message) {
         module: 'descendent',
         method: 'route',
         name: name,
+        from: [],
         to: [],
         path: [],
         body: message

@@ -70,7 +70,8 @@ function prove (okay) {
             module: 'descendent',
             method: 'route',
             name: 'hello:world',
-            path: [ 0, 1 ],
+            from: [ 0 ],
+            to: [ 0, 1 ],
             body: 'down received'
         }],
         message: 'down received'
@@ -108,7 +109,8 @@ function prove (okay) {
             module: 'descendent',
             method: 'route',
             name: 'hello:world',
-            path: [ 1 ],
+            from: [],
+            to: [ 1 ],
             body: 1
         }],
         message: 'across'
@@ -180,6 +182,7 @@ function prove (okay) {
     parent.emit('message', {
         module: 'descendent',
         method: 'route',
+        from: [ 0 ],
         to: [],
         path: [ 0 ],
         name: 'hello:world',
