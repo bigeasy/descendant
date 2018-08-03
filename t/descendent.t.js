@@ -25,7 +25,7 @@ function prove (okay) {
             path: [ 1, 2, 1 ],
             body: 'to sibling'
         }],
-        message: 'up up and out'
+        message: 'to sibling'
     }, {
         vargs: [{
             module: 'descendent',
