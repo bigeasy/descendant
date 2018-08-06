@@ -1,4 +1,4 @@
-require('proof')(11, prove)
+require('proof')(12, prove)
 
 function prove (okay) {
     var Descendent = require('../descendent')
@@ -36,6 +36,16 @@ function prove (okay) {
             body: 'up up and out'
         }],
         message: 'up up and out'
+    }, {
+        vargs: [{
+            module: 'descendent',
+            method: 'route',
+            name: 'hello:world',
+            to: [ 0 ],
+            path: [ 1 ],
+            body: 'up up and out array'
+        }],
+        message: 'up up and out array'
     }, {
         vargs: [{
             module: 'descendent',
@@ -148,6 +158,7 @@ function prove (okay) {
     parent.send = asExpected
     var descendent = new Descendent(parent)
     descendent.up(0, 'hello:world', 'up up and out')
+    descendent.up([ 0 ], 'hello:world', 'up up and out array')
     var child = new events.EventEmitter
     child.pid = 2
     descendent.addChild(child, 2)
