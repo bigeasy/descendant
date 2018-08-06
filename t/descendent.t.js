@@ -1,7 +1,7 @@
 require('proof')(12, prove)
 
 function prove (okay) {
-    var Descendent = require('../descendent')
+    var Descendent = require('..')
     var events = require('events')
 
     var expect = [{
