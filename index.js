@@ -1,3 +1,3 @@
-var Descendent = require('.')
+var Descendent = require('./descendent')
 
 module.exports = new Descendent(process)
