@@ -3,16 +3,8 @@ var events = require('events')
 
 var coalesce = require('extant')
 
-// TODO Could use `-1` to mean go up one. `0` means root. Or else `-Infinity`
-// means to the root. No, `0` because `-Infinity` is not valid JSON. Overshoot
-// and it stops at the root.
-
-function Descendent (process) {
-    var descendent = this
-    this._process = process
-    this._children = {}
-    this._counter = 1
-    this._process.on('message', this._listener = function (message) {
+function down (descendent) {
+    return function (message) {
         var vargs = Array.prototype.slice.call(arguments)
         if (
             message.module == 'descendent' &&
@@ -53,7 +45,19 @@ function Descendent (process) {
             vargs.unshift('down')
             descendent.emit.apply(descendent, vargs)
         }
-    })
+    }
+}
+
+// TODO Could use `-1` to mean go up one. `0` means root. Or else `-Infinity`
+// means to the root. No, `0` because `-Infinity` is not valid JSON. Overshoot
+// and it stops at the root.
+
+function Descendent (process) {
+    var descendent = this
+    this._process = process
+    this._children = {}
+    this._counter = 1
+    this._process.on('message', this._listener = down(this))
     events.EventEmitter.call(this)
 }
 util.inherits(Descendent, events.EventEmitter)
@@ -75,78 +79,82 @@ Descendent.prototype.increment = function () {
     this._counter++
 }
 
+function up (descendent, cookie, pid) {
+    return function (message) {
+        var vargs = Array.prototype.slice.call(arguments)
+        if (
+            message.module == 'descendent' &&
+            message.method == 'route' &&
+            Array.isArray(message.to) &&
+            Array.isArray(message.path)
+        ) {
+            message = JSON.parse(JSON.stringify(message))
+            if (message.path.length == 1) {
+                message.cookie = coalesce(cookie)
+            }
+            // Was using zero to mean go to the root, but that doesn't mean
+            // anything because we could be running underneath a Node.js
+            // supervisor of some sort that enabled `'ipc'`, so is that
+            // anonymous process the root? We should always specify a PID
+            // for the destination, which can be set in an environment
+            // variable. We could visit everyone on the way up, but if we
+            // have a handle and a visitor consumes it, but then we
+            // propagate it, then the visitor loses the handle. Well, we
+            // could assert that if we're going up with `0` that no handle
+            // is passed, so we could revisit this.
+            message.path.unshift(descendent._process.pid)
+            if (
+                message.to[0] == descendent._process.pid
+            ) {
+                // TODO What sort of path information do you add to a
+                // redirect?
+                if (message.to.length == 1) {
+                    vargs[0] = {
+                        module: 'descendent',
+                        method: 'route',
+                        name: message.name,
+                        to: message.to,
+                        from: message.path,
+                        body: message.body,
+                        cookie: message.cookie
+                    }
+                    vargs.unshift(message.name)
+                    descendent.emit.apply(descendent, vargs)
+                } else {
+                    vargs[0] = {
+                        module: 'descendent',
+                        method: 'route',
+                        name: message.name,
+                        to: message.to.slice(1),
+                        from: message.path.slice(),
+                        path: message.path.slice(),
+                        body: message.body
+                    }
+                    descendent._listener.apply(null, vargs)
+                }
+            } else if (descendent._process.send) {
+                vargs[0] = message
+                descendent._process.send.apply(descendent._process, vargs)
+            }
+        } else {
+            vargs[0] = {
+                module: 'descendent',
+                method: 'up',
+                from: [ descendent._process.pid, pid ],
+                cookie: coalesce(cookie),
+                body: message
+            }
+            vargs.unshift('up')
+            descendent.emit.apply(descendent, vargs)
+        }
+    }
+}
+
 Descendent.prototype.addChild = function (child, cookie) {
     var descendent = this
     var entry = this._children[child.pid] = {
         child: child,
-        listener: function (message) {
-            var vargs = Array.prototype.slice.call(arguments)
-            if (
-                message.module == 'descendent' &&
-                message.method == 'route' &&
-                Array.isArray(message.to) &&
-                Array.isArray(message.path)
-            ) {
-                message = JSON.parse(JSON.stringify(message))
-                if (message.path.length == 1) {
-                    message.cookie = coalesce(cookie)
-                }
-                // Was using zero to mean go to the root, but that doesn't mean
-                // anything because we could be running underneath a Node.js
-                // supervisor of some sort that enabled `'ipc'`, so is that
-                // anonymous process the root? We should always specify a PID
-                // for the destination, which can be set in an environment
-                // variable. We could visit everyone on the way up, but if we
-                // have a handle and a visitor consumes it, but then we
-                // propagate it, then the visitor loses the handle. Well, we
-                // could assert that if we're going up with `0` that no handle
-                // is passed, so we could revisit this.
-                message.path.unshift(descendent._process.pid)
-                if (
-                    message.to[0] == descendent._process.pid
-                ) {
-                    // TODO What sort of path information do you add to a
-                    // redirect?
-                    if (message.to.length == 1) {
-                        vargs[0] = {
-                            module: 'descendent',
-                            method: 'route',
-                            name: message.name,
-                            to: message.to,
-                            from: message.path,
-                            body: message.body,
-                            cookie: message.cookie
-                        }
-                        vargs.unshift(message.name)
-                        descendent.emit.apply(descendent, vargs)
-                    } else {
-                        vargs[0] = {
-                            module: 'descendent',
-                            method: 'route',
-                            name: message.name,
-                            to: message.to.slice(1),
-                            from: message.path.slice(),
-                            path: message.path.slice(),
-                            body: message.body
-                        }
-                        descendent._listener.apply(null, vargs)
-                    }
-                } else if (descendent._process.send) {
-                    vargs[0] = message
-                    descendent._process.send.apply(descendent._process, vargs)
-                }
-            } else {
-                vargs[0] = {
-                    module: 'descendent',
-                    method: 'up',
-                    from: [ descendent._process.pid, child.pid ],
-                    cookie: coalesce(cookie),
-                    body: message
-                }
-                vargs.unshift('up')
-                descendent.emit.apply(descendent, vargs)
-            }
-        }
+        listener: up(this,  cookie, child.pid)
     }
     child.on('message', entry.listener)
 }
