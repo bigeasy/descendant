@@ -3,6 +3,20 @@ var events = require('events')
 
 var coalesce = require('extant')
 
+// TODO Could use `-1` to mean go up one. `0` means root. Or else `-Infinity`
+// means to the root. No, `0` because `-Infinity` is not valid JSON. Overshoot
+// and it stops at the root.
+
+function Descendent (process) {
+    var descendent = this
+    this._process = process
+    this._children = {}
+    this._counter = 1
+    this._process.on('message', this._listener = down(this))
+    events.EventEmitter.call(this)
+}
+util.inherits(Descendent, events.EventEmitter)
+
 function down (descendent) {
     return function (message) {
         var vargs = Array.prototype.slice.call(arguments)
@@ -47,20 +61,6 @@ function down (descendent) {
         }
     }
 }
-
-// TODO Could use `-1` to mean go up one. `0` means root. Or else `-Infinity`
-// means to the root. No, `0` because `-Infinity` is not valid JSON. Overshoot
-// and it stops at the root.
-
-function Descendent (process) {
-    var descendent = this
-    this._process = process
-    this._children = {}
-    this._counter = 1
-    this._process.on('message', this._listener = down(this))
-    events.EventEmitter.call(this)
-}
-util.inherits(Descendent, events.EventEmitter)
 
 Descendent.prototype.destroy = function () {
     this._process.removeListener('message', this._listener)
