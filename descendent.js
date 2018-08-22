@@ -9,7 +9,7 @@ var coalesce = require('extant')
 
 function Descendent (process) {
     var descendent = this
-    this._process = process
+    this.process = process
     this._children = {}
     this._counter = 0
     events.EventEmitter.call(this)
@@ -26,7 +26,7 @@ function down (descendent) {
             Array.isArray(message.path)
         ) {
             message = JSON.parse(JSON.stringify(message))
-            message.path.push(descendent._process.pid)
+            message.path.push(descendent.process.pid)
             if (message.to.length == 0) {
                 vargs[0] = {
                     module: 'descendent',
@@ -63,7 +63,7 @@ function down (descendent) {
 
 Descendent.prototype.decrement = function () {
     if (--this._counter == 0) {
-        this._process.removeListener('message', this._listener)
+        this.process.removeListener('message', this._listener)
         Object.keys(this._children).forEach(function (pid) {
             this.removeChild(this._children[pid].child)
         }, this)
@@ -72,7 +72,7 @@ Descendent.prototype.decrement = function () {
 
 Descendent.prototype.increment = function () {
     if (this._counter++ == 0) {
-        this._process.on('message', this._listener = down(this))
+        this.process.on('message', this._listener = down(this))
     }
 }
 
@@ -99,9 +99,9 @@ function up (descendent, cookie, pid) {
             // propagate it, then the visitor loses the handle. Well, we
             // could assert that if we're going up with `0` that no handle
             // is passed, so we could revisit this.
-            message.path.unshift(descendent._process.pid)
+            message.path.unshift(descendent.process.pid)
             if (
-                message.to[0] == descendent._process.pid
+                message.to[0] == descendent.process.pid
             ) {
                 // TODO What sort of path information do you add to a
                 // redirect?
@@ -129,15 +129,15 @@ function up (descendent, cookie, pid) {
                     }
                     descendent._listener.apply(null, vargs)
                 }
-            } else if (descendent._process.send) {
+            } else if (descendent.process.send) {
                 vargs[0] = message
-                descendent._process.send.apply(descendent._process, vargs)
+                descendent.process.send.apply(descendent.process, vargs)
             }
         } else {
             vargs[0] = {
                 module: 'descendent',
                 method: 'up',
-                from: [ descendent._process.pid, pid ],
+                from: [ descendent.process.pid, pid ],
                 cookie: coalesce(cookie),
                 body: message
             }
@@ -163,7 +163,7 @@ Descendent.prototype.removeChild = function (child) {
 }
 
 Descendent.prototype.up = function (to, name, message) {
-    if (this._process.send) {
+    if (this.process.send) {
         var vargs = Array.prototype.slice.call(arguments, 2)
         if (!Array.isArray(to)) {
             to = [ to ]
@@ -173,10 +173,10 @@ Descendent.prototype.up = function (to, name, message) {
             method: 'route',
             name: name,
             to: to,
-            path: [ this._process.pid ],
+            path: [ this.process.pid ],
             body: message
         }
-        this._process.send.apply(this._process, vargs)
+        this.process.send.apply(this.process, vargs)
     }
 }
 
@@ -191,11 +191,11 @@ Descendent.prototype.down = function (path, name, message) {
         method: 'route',
         name: name,
         to: path.slice(),
-        from: [ this._process.pid ],
+        from: [ this.process.pid ],
         path: [],
         body: message
     }
-    if (envelope.to[0] == this._process.pid) {
+    if (envelope.to[0] == this.process.pid) {
         envelope.to.shift()
     }
     this._listener.apply(null, vargs)
@@ -216,7 +216,7 @@ Descendent.prototype.across = function (name, message) {
         body: message
     }
     vargs.unshift('message')
-    this._process.emit.apply(this._process, vargs)
+    this.process.emit.apply(this.process, vargs)
 }
 
 module.exports = Descendent
