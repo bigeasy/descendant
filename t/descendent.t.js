@@ -135,6 +135,7 @@ function prove (okay) {
     var parent = new events.EventEmitter
     parent.pid = 1
     var descendent = new Descendent(parent)
+    descendent.increment()
     descendent.up(0, 'hello:world', 1)
     var child = new events.EventEmitter
     child.pid = 2
@@ -157,6 +158,7 @@ function prove (okay) {
     parent.pid = 1
     parent.send = asExpected
     var descendent = new Descendent(parent)
+    descendent.increment()
     descendent.up(0, 'hello:world', 'up up and out')
     descendent.up([ 0 ], 'hello:world', 'up up and out array')
     var child = new events.EventEmitter

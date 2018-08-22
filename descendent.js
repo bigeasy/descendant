@@ -11,8 +11,7 @@ function Descendent (process) {
     var descendent = this
     this._process = process
     this._children = {}
-    this._counter = 1
-    this._process.on('message', this._listener = down(this))
+    this._counter = 0
     events.EventEmitter.call(this)
 }
 util.inherits(Descendent, events.EventEmitter)
@@ -72,7 +71,9 @@ Descendent.prototype.decrement = function () {
 }
 
 Descendent.prototype.increment = function () {
-    this._counter++
+    if (this._counter++ == 0) {
+        this._process.on('message', this._listener = down(this))
+    }
 }
 
 function up (descendent, cookie, pid) {
