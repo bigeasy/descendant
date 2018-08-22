@@ -62,16 +62,12 @@ function down (descendent) {
     }
 }
 
-Descendent.prototype.destroy = function () {
-    this._process.removeListener('message', this._listener)
-    Object.keys(this._children).forEach(function (pid) {
-        this.removeChild(this._children[pid].child)
-    }, this)
-}
-
 Descendent.prototype.decrement = function () {
     if (--this._counter == 0) {
-        this.destroy()
+        this._process.removeListener('message', this._listener)
+        Object.keys(this._children).forEach(function (pid) {
+            this.removeChild(this._children[pid].child)
+        }, this)
     }
 }
 
