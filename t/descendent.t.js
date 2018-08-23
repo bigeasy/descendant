@@ -1,4 +1,4 @@
-require('proof')(12, prove)
+require('proof')(14, prove)
 
 function prove (okay) {
     var Descendent = require('../descendent')
@@ -15,6 +15,17 @@ function prove (okay) {
             cookie: 2
         }],
         message: 'to top'
+    }, {
+        vargs: [{
+            module: 'descendent',
+            method: 'route',
+            name: 'hello:world',
+            to: [ 0 ],
+            body: 'everyone on the way up',
+            from: [ 1, 2 ],
+            cookie: 2
+        }],
+        message: 'everyone on the way up'
     }, {
         vargs: [{
             module: 'descendent',
@@ -46,6 +57,16 @@ function prove (okay) {
             body: 'up up and out array'
         }],
         message: 'up up and out array'
+    }, {
+        vargs: [{
+            module: 'descendent',
+            method: 'route',
+            name: 'hello:world',
+            to: [ 0 ],
+            path: [ 1 ],
+            body: 'up up and out broadcast'
+        }],
+        message: 'up up and out broadcast'
     }, {
         vargs: [{
             module: 'descendent',
@@ -145,6 +166,7 @@ function prove (okay) {
     // Send a message that defaults to the parent.
     descendent.on('hello:world', asExpected)
     child.emit('message', { module: 'descendent', method: 'route', name: 'hello:world', to: [ 1 ], path: [ 2 ], body: 'to top' })
+    child.emit('message', { module: 'descendent', method: 'route', name: 'hello:world', to: [ 0 ], path: [ 2 ], body: 'everyone on the way up' })
 
     // See if you can send a message to a sibling.
     var sibling = new events.EventEmitter
@@ -161,6 +183,7 @@ function prove (okay) {
     descendent.increment()
     descendent.up(9, 'hello:world', 'up up and out')
     descendent.up([ 9 ], 'hello:world', 'up up and out array')
+    descendent.up([ 0 ], 'hello:world', 'up up and out broadcast')
     var child = new events.EventEmitter
     child.pid = 2
     descendent.addChild(child, 2)

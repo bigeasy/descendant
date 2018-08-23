@@ -3,6 +3,8 @@ var events = require('events')
 
 var coalesce = require('extant')
 
+var assert = require('assert')
+
 // TODO Could use `-1` to mean go up one. `0` means root. Or else `-Infinity`
 // means to the root. No, `0` because `-Infinity` is not valid JSON. Overshoot
 // and it stops at the root.
@@ -101,7 +103,8 @@ function up (descendent, cookie, pid) {
             // is passed, so we could revisit this.
             message.path.unshift(descendent.process.pid)
             if (
-                message.to[0] == descendent.process.pid
+                message.to[0] === descendent.process.pid ||
+                message.to[0] === 0
             ) {
                 // TODO What sort of path information do you add to a
                 // redirect?
@@ -129,7 +132,11 @@ function up (descendent, cookie, pid) {
                     }
                     descendent._listener.apply(null, vargs)
                 }
-            } else if (descendent.process.send) {
+            }
+            if (
+                descendent.process.send &&
+                message.to[0] !== descendent.process.pid
+            ) {
                 vargs[0] = message
                 descendent.process.send.apply(descendent.process, vargs)
             }
@@ -168,6 +175,7 @@ Descendent.prototype.up = function (to, name, message) {
         if (!Array.isArray(to)) {
             to = [ to ]
         }
+        assert(to[0] !== 0 || vargs.length === 1, 'cannot broadcast a handle')
         vargs[0] = {
             module: 'descendent',
             method: 'route',
