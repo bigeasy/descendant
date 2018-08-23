@@ -78,6 +78,12 @@ Descendent.prototype.increment = function () {
     }
 }
 
+Descendent.prototype._send = function (vargs) {
+    if (this.process.send) {
+        this.process.send.apply(this.process, vargs)
+    }
+}
+
 function up (descendent, cookie, pid) {
     return function (message) {
         var vargs = Array.prototype.slice.call(arguments)
@@ -134,11 +140,10 @@ function up (descendent, cookie, pid) {
                 }
             }
             if (
-                descendent.process.send &&
                 message.to[0] !== descendent.process.pid
             ) {
                 vargs[0] = message
-                descendent.process.send.apply(descendent.process, vargs)
+                descendent._send(vargs)
             }
         } else {
             vargs[0] = {
@@ -170,22 +175,20 @@ Descendent.prototype.removeChild = function (child) {
 }
 
 Descendent.prototype.up = function (to, name, message) {
-    if (this.process.send) {
-        var vargs = Array.prototype.slice.call(arguments, 2)
-        if (!Array.isArray(to)) {
-            to = [ to ]
-        }
-        assert(to[0] !== 0 || vargs.length === 1, 'cannot broadcast a handle')
-        vargs[0] = {
-            module: 'descendent',
-            method: 'route',
-            name: name,
-            to: to,
-            path: [ this.process.pid ],
-            body: message
-        }
-        this.process.send.apply(this.process, vargs)
+    var vargs = Array.prototype.slice.call(arguments, 2)
+    if (!Array.isArray(to)) {
+        to = [ to ]
     }
+    assert(to[0] !== 0 || vargs.length === 1, 'cannot broadcast a handle')
+    vargs[0] = {
+        module: 'descendent',
+        method: 'route',
+        name: name,
+        to: to,
+        path: [ this.process.pid ],
+        body: message
+    }
+    this._send(vargs)
 }
 
 // Send a message down to a child. Path is the full path to the child with an
