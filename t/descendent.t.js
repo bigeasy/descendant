@@ -31,7 +31,7 @@ function prove (okay) {
             module: 'descendent',
             method: 'route',
             name: 'hello:world',
-            to: [ 0 ],
+            to: [ 9 ],
             path: [ 1 ],
             body: 'up up and out'
         }],
@@ -41,7 +41,7 @@ function prove (okay) {
             module: 'descendent',
             method: 'route',
             name: 'hello:world',
-            to: [ 0 ],
+            to: [ 9 ],
             path: [ 1 ],
             body: 'up up and out array'
         }],
@@ -50,7 +50,7 @@ function prove (okay) {
         vargs: [{
             module: 'descendent',
             method: 'route',
-            to: [ 0 ],
+            to: [ 9 ],
             path: [ 1, 2 ],
             body: 'child up and out',
             cookie: 2
@@ -80,8 +80,8 @@ function prove (okay) {
             module: 'descendent',
             method: 'route',
             name: 'hello:world',
-            from: [ 0 ],
-            to: [ 0, 1 ],
+            from: [ 9 ],
+            to: [ 9, 1 ],
             body: 'down received'
         }],
         message: 'down received'
@@ -136,7 +136,7 @@ function prove (okay) {
     parent.pid = 1
     var descendent = new Descendent(parent)
     descendent.increment()
-    descendent.up(0, 'hello:world', 1)
+    descendent.up(9, 'hello:world', 1)
     var child = new events.EventEmitter
     child.pid = 2
     descendent.addChild(child, 2)
@@ -159,12 +159,12 @@ function prove (okay) {
     parent.send = asExpected
     var descendent = new Descendent(parent)
     descendent.increment()
-    descendent.up(0, 'hello:world', 'up up and out')
-    descendent.up([ 0 ], 'hello:world', 'up up and out array')
+    descendent.up(9, 'hello:world', 'up up and out')
+    descendent.up([ 9 ], 'hello:world', 'up up and out array')
     var child = new events.EventEmitter
     child.pid = 2
     descendent.addChild(child, 2)
-    child.emit('message', { module: 'descendent', method: 'route', to: [ 0 ], path: [ 2 ], body: 'child up and out' })
+    child.emit('message', { module: 'descendent', method: 'route', to: [ 9 ], path: [ 2 ], body: 'child up and out' })
 
     // Send a message up and out as a non-descendent message.
     descendent.on('up', asExpected)
@@ -195,9 +195,9 @@ function prove (okay) {
     parent.emit('message', {
         module: 'descendent',
         method: 'route',
-        from: [ 0 ],
+        from: [ 9 ],
         to: [],
-        path: [ 0 ],
+        path: [ 9 ],
         name: 'hello:world',
         body: 'down received'
     })
