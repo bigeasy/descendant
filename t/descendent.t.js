@@ -1,4 +1,4 @@
-require('proof')(14, prove)
+require('proof')(16, prove)
 
 function prove (okay) {
     var Descendent = require('../descendent')
@@ -145,6 +145,28 @@ function prove (okay) {
             body: 1
         }],
         message: 'across'
+    }, {
+        vargs: [{
+            module: 'descendent',
+            method: 'route',
+            name: 'descendent:close',
+            to: [ 0 ],
+            from: [ 1, 2 ],
+            body: { exitCode: 0, signal: null },
+            cookie: 2
+        }],
+        message: 'close handler'
+    }, {
+        vargs: [{
+            module: 'descendent',
+            method: 'route',
+            name: 'descendent:close',
+            to: [ 0 ],
+            path: [ 1, 2 ],
+            body: { exitCode: 0, signal: null },
+            cookie: 2
+        }],
+        message: 'close'
     }]
 
     function asExpected (value) {
@@ -232,6 +254,10 @@ function prove (okay) {
     descendent.down([ 2, 3 ], 'hello:world', 'down without self')
 
     descendent.across('hello:world', 1)
+
+    descendent.on('descendent:close', asExpected)
+
+    child.emit('close', 0, null)
 
     descendent.increment()
     descendent.decrement()

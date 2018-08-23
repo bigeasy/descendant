@@ -126,6 +126,7 @@ function up (descendent, cookie, pid) {
                     }
                     vargs.unshift(message.name)
                     descendent.emit.apply(descendent, vargs)
+                    vargs.shift()
                 } else {
                     vargs[0] = {
                         module: 'descendent',
@@ -159,19 +160,39 @@ function up (descendent, cookie, pid) {
     }
 }
 
+function close (descendent, cookie, child) {
+    return function (exitCode, signal) {
+        var entry = descendent._children[child.pid]
+        descendent.removeChild(child)
+        // Pretend that the child announced it's own exit.
+        entry.message.call(null, {
+            module: 'descendent',
+            method: 'route',
+            name: 'descendent:close',
+            to: [ 0 ],
+            path: [ child.pid ],
+            body: { exitCode: exitCode, signal: signal }
+        })
+    }
+}
+
 Descendent.prototype.addChild = function (child, cookie) {
     var descendent = this
     var entry = this._children[child.pid] = {
         child: child,
-        listener: up(this,  cookie, child.pid)
+        message: up(this,  cookie, child.pid),
+        close: close(this, cookie, child)
     }
-    child.on('message', entry.listener)
+    child.on('message', entry.message)
+    child.on('close', entry.close)
+
 }
 
 Descendent.prototype.removeChild = function (child) {
     var entry = this._children[child.pid]
     delete this._children[child.pid]
-    entry.child.removeListener('message', entry.listener)
+    entry.child.removeListener('message', entry.message)
+    entry.child.removeListener('close', entry.close)
 }
 
 Descendent.prototype.up = function (to, name, message) {
