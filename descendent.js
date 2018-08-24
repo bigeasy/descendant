@@ -42,7 +42,7 @@ function down (descendent) {
                 descendent.emit.apply(descendent, vargs)
             } else {
                 var entry = descendent._children[message.to[0]]
-                if (entry != null) {
+                if (entry != null && entry.child.connected) {
                     message.to.shift()
                     vargs[0] = message
                     entry.child.send.apply(entry.child, vargs)
@@ -79,7 +79,7 @@ Descendent.prototype.increment = function () {
 }
 
 Descendent.prototype._send = function (vargs) {
-    if (this.process.send) {
+    if (this.process.connected) {
         this.process.send.apply(this.process, vargs)
     }
 }

@@ -195,12 +195,14 @@ function prove (okay) {
     sibling.pid = 4
     descendent.addChild(sibling, 4)
     sibling.send = asExpected
+    sibling.connected = true
     child.emit('message', { module: 'descendent', method: 'route', name: 'hello:world', to: [ 1, 4 ], path: [ 2 ], body: 'to sibling' })
 
     // Send message up out of parent.
     var parent = new events.EventEmitter
     parent.pid = 1
     parent.send = asExpected
+    parent.connected = true
     var descendent = new Descendent(parent)
     descendent.increment()
     descendent.up(9, 'hello:world', 'up up and out')
@@ -217,6 +219,7 @@ function prove (okay) {
 
     // Send a message down to the child.
     child.send = asExpected
+    child.connected = true
     // This one goes nowhere.
     parent.emit('message', {
         module: 'descendent',
