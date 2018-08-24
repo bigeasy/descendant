@@ -1,4 +1,4 @@
-require('proof')(16, prove)
+require('proof')(18, prove)
 
 function prove (okay) {
     var Descendent = require('../descendent')
@@ -261,6 +261,21 @@ function prove (okay) {
     descendent.on('descendent:close', asExpected)
 
     child.emit('close', 0, null)
+
+    parent.connected = false
+    descendent.up([ 9 ], 'hello:world', 'up up and out array', {
+        destroy: function () {
+            okay(true, 'up destroyed')
+        }
+    })
+
+    child.connected = false
+    descendent.addChild(child, 3)
+    descendent.down([ 2, 3 ], 'hello:world', 'down disconneted', {
+        destroy: function () {
+            okay(true, 'down destroyed')
+        }
+    })
 
     descendent.increment()
     descendent.decrement()
