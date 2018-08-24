@@ -15,16 +15,19 @@ setTimeout(function () {
     var other = children.spawn('node', [ path.join(__dirname, 'child.js') ], {
         stdio: [ 'inherit', 'inherit', 'inherit', 'pipe' ]
     })
-    console.log('sending to killed child')
+    console.log('created a child, send in three seconds')
     child.on('error', function (e) {
+        console.log(arguments)
         console.log(e.message)
         console.log(e.code)
     })
     console.log(child.connected)
-    try {
-        child.send({})
-    } catch (e) {
-        console.log(e.message)
-        console.log(e.code)
-    }
+    setTimeout(function () {
+        console.log('send to killed child')
+        child.send({}, other.stdio[3])
+        setTimeout(function () {
+            console.log('explicit close')
+            other.stdio[3].destroy()
+        }, 3000)
+    }, 3000)
 }, 3000)
