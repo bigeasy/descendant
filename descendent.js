@@ -74,11 +74,26 @@ Descendent.prototype.decrement = function () {
         Object.keys(this._children).forEach(function (pid) {
             this.removeChild(this._children[pid].child)
         }, this)
+        if (this._parentProcessPath == null) {
+            delete this.process.env.DESCENDENT_PROCESS_PATH
+        } else {
+            this.process.env.DESCENDENT_PROCESS_PATH = this._parentProcessPath
+        }
+        this.path = null
     }
 }
 
 Descendent.prototype.increment = function () {
     if (this._counter++ == 0) {
+        this._parentProcessPath = coalesce(this.process.env.DESCENDENT_PROCESS_PATH)
+        this.path = coalesce(this._parentProcessPath, '0').split(/\s+/).map(function (pid) {
+            return +pid
+        })
+        if (this.path[0] === 0) {
+            this.path = []
+        }
+        this.path.push(this.process.pid)
+        this.process.env.DESCENDENT_PROCESS_PATH = this.path.join(' ')
         this.process.on('message', this._listener = down(this))
     }
 }

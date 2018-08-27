@@ -1,4 +1,4 @@
-require('proof')(18, prove)
+require('proof')(26, prove)
 
 function prove (okay) {
     var Descendent = require('../descendent')
@@ -177,8 +177,11 @@ function prove (okay) {
     // Send messages past the parent that should do nothing.
     var parent = new events.EventEmitter
     parent.pid = 1
+    parent.env = {}
     var descendent = new Descendent(parent)
     descendent.increment()
+    okay(descendent.path, [ 1 ], 'path at root')
+    okay(parent.env, { DESCENDENT_PROCESS_PATH: '1' }, 'path at root env')
     descendent.up(9, 'hello:world', 1)
     var child = new events.EventEmitter
     child.pid = 2
@@ -198,13 +201,20 @@ function prove (okay) {
     sibling.connected = true
     child.emit('message', { module: 'descendent', method: 'route', name: 'hello:world', to: [ 1, 4 ], path: [ 2 ], body: 'to sibling' })
 
+    descendent.decrement()
+    okay(descendent.path, null, 'path at root restored')
+    okay(descendent.process.env, {}, 'path at root env restored')
+
     // Send message up out of parent.
     var parent = new events.EventEmitter
     parent.pid = 1
+    parent.env = { DESCENDENT_PROCESS_PATH: '8' }
     parent.send = asExpected
     parent.connected = true
     var descendent = new Descendent(parent)
     descendent.increment()
+    okay(descendent.path, [ 8, 1 ], 'path with parent')
+    okay(parent.env, { DESCENDENT_PROCESS_PATH: '8 1' }, 'path with parent env')
     descendent.up(9, 'hello:world', 'up up and out')
     descendent.up([ 9 ], 'hello:world', 'up up and out array')
     descendent.up([ 0 ], 'hello:world', 'up up and out broadcast')
@@ -280,4 +290,6 @@ function prove (okay) {
     descendent.increment()
     descendent.decrement()
     descendent.decrement()
+    okay(descendent.path, null, 'path with parent restored')
+    okay(descendent.process.env, { DESCENDENT_PROCESS_PATH: '8' }, 'path with parnet env restored')
 }
