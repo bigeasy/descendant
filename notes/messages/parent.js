@@ -1,3 +1,4 @@
+// This will raise `ERR_IPC_CHANNEL_CLOSED`.
 var children = require('child_process')
 var path = require('path')
 
