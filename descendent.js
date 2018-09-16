@@ -185,6 +185,7 @@ function up (descendent, cookie, pid) {
 
 function close (descendent, cookie, child) {
     return function (exitCode, signal) {
+        assert(!child.connected, 'child is still connected')
         var entry = descendent._children[child.pid]
         descendent.removeChild(child)
         // Pretend that the child announced it's own exit.

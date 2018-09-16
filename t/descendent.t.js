@@ -270,6 +270,7 @@ function prove (okay) {
 
     descendent.on('descendent:close', asExpected)
 
+    child.connected = false
     child.emit('close', 0, null)
 
     parent.connected = false
