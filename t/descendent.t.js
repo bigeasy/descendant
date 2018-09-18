@@ -1,4 +1,4 @@
-require('proof')(27, prove)
+require('proof')(29, prove)
 
 function prove (okay) {
     var Descendent = require('../descendent')
@@ -298,9 +298,29 @@ function prove (okay) {
     descendent.increment()
 
     descendent.process.once('descendent:sent', function (message) {
-        okay(message.body, 1, 'mock parent')
+        okay({
+            name: message.name,
+            body: message.body
+        }, {
+            name: 'up',
+            body: 1
+        }, 'mock parent')
     })
     descendent.up([ 0 ], 'up', 1)
+
+    descendent.addMockChild(2, {})
+    descendent.children[2].once('descendent:sent', function (message) {
+        okay({
+            name: message.name,
+            body: message.body
+        }, {
+            name: 'down',
+            body: 1
+        }, 'mock child')
+    })
+    descendent.down([ 1, 2 ], 'down', 1)
+    descendent.removeChild(2)
+    okay(! descendent.children[2], 'remove child by pid')
 
     descendent.decrement()
 }

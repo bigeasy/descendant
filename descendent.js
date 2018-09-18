@@ -12,7 +12,8 @@ var assert = require('assert')
 function Descendent (process) {
     var descendent = this
     this.process = process
-    this._children = {}
+    this.children = {}
+    this._listeners = {}
     this._counter = 0
     events.EventEmitter.call(this)
 }
@@ -54,12 +55,12 @@ function down (descendent) {
                 vargs.unshift(message.name)
                 descendent.emit.apply(descendent, vargs)
             } else {
-                var entry = descendent._children[message.to[0]]
-                if (entry != null) {
-                    if (entry.child.connected) {
+                var child = descendent.children[message.to[0]]
+                if (child != null) {
+                    if (child.connected) {
                         message.to.shift()
                         vargs[0] = message
-                        entry.child.send.apply(entry.child, vargs)
+                        child.send.apply(child, vargs)
                     }
                     if (vargs[1] != null) {
                         vargs[1].destroy()
@@ -84,8 +85,8 @@ function down (descendent) {
 Descendent.prototype.decrement = function () {
     if (--this._counter == 0) {
         this.process.removeListener('message', this._listener)
-        Object.keys(this._children).forEach(function (pid) {
-            this.removeChild(this._children[pid].child)
+        Object.keys(this.children).forEach(function (pid) {
+            this.removeChild(this.children[pid])
         }, this)
         if (this._parentProcessPath == null) {
             delete this.process.env.DESCENDENT_PROCESS_PATH
@@ -199,10 +200,10 @@ function up (descendent, cookie, pid) {
 function close (descendent, cookie, child) {
     return function (exitCode, signal) {
         assert(!child.connected, 'child is still connected')
-        var entry = descendent._children[child.pid]
+        var listeners = descendent._listeners[child.pid]
         descendent.removeChild(child)
         // Pretend that the child announced it's own exit.
-        entry.message.call(null, {
+        listeners.message.call(null, {
             module: 'descendent',
             method: 'route',
             name: 'descendent:close',
@@ -213,23 +214,39 @@ function close (descendent, cookie, child) {
     }
 }
 
+Descendent.prototype.addMockChild = function (pid, cookie) {
+    var child = new events.EventEmitter
+    child.pid = pid
+    child.connected = true
+    child.send = function () {
+        var vargs = Array.prototype.slice.call(arguments)
+        vargs.unshift('descendent:sent')
+        this.emit.apply(this, vargs)
+    }
+    this.addChild(child, cookie)
+    return child
+}
+
 Descendent.prototype.addChild = function (child, cookie) {
-    var descendent = this
-    var entry = this._children[child.pid] = {
-        child: child,
+    this.children[child.pid] = child
+    var listeners = this._listeners[child.pid] = {
         message: up(this,  cookie, child.pid),
         close: close(this, cookie, child)
     }
-    child.on('message', entry.message)
-    child.on('close', entry.close)
+    child.on('message', listeners.message)
+    child.on('close', listeners.close)
 
 }
 
 Descendent.prototype.removeChild = function (child) {
-    var entry = this._children[child.pid]
-    delete this._children[child.pid]
-    entry.child.removeListener('message', entry.message)
-    entry.child.removeListener('close', entry.close)
+    if (Number.isInteger(child)) {
+        child = this.children[child]
+    }
+    var listeners = this._listeners[child.pid]
+    delete this.children[child.pid]
+    delete this._listeners[child.pid]
+    child.removeListener('message', listeners.message)
+    child.removeListener('close', listeners.close)
 }
 
 Descendent.prototype.up = function (to, name, message) {
