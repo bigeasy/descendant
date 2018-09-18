@@ -18,6 +18,19 @@ function Descendent (process) {
 }
 util.inherits(Descendent, events.EventEmitter)
 
+Descendent.prototype.createMockProcess = function () {
+    var process = new events.EventEmitter
+    process.pid = 1
+    process.env = { 'DESCENDENT_PROCESS_PATH': '0' }
+    process.send = function (message, socket) {
+        var vargs = Array.prototype.slice.call(arguments)
+        vargs.unshift('descendent:sent')
+        process.emit.apply(process, vargs)
+    }
+    process.connected = true
+    this.process = process
+}
+
 function down (descendent) {
     return function (message) {
         var vargs = Array.prototype.slice.call(arguments)

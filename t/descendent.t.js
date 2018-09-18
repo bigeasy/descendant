@@ -1,4 +1,4 @@
-require('proof')(26, prove)
+require('proof')(27, prove)
 
 function prove (okay) {
     var Descendent = require('../descendent')
@@ -293,4 +293,14 @@ function prove (okay) {
     descendent.decrement()
     okay(descendent.path, null, 'path with parent restored')
     okay(descendent.process.env, { DESCENDENT_PROCESS_PATH: '8' }, 'path with parnet env restored')
+
+    descendent.createMockProcess()
+    descendent.increment()
+
+    descendent.process.once('descendent:sent', function (message) {
+        okay(message.body, 1, 'mock parent')
+    })
+    descendent.up([ 0 ], 'up', 1)
+
+    descendent.decrement()
 }
