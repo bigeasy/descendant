@@ -21,8 +21,8 @@ util.inherits(Descendent, events.EventEmitter)
 
 Descendent.prototype.createMockProcess = function () {
     var process = new events.EventEmitter
-    process.pid = 1
-    process.env = { 'DESCENDENT_PROCESS_PATH': '0' }
+    process.pid = 2
+    process.env = { 'DESCENDENT_PROCESS_PATH': '1' }
     process.send = function (message, socket) {
         var vargs = Array.prototype.slice.call(arguments)
         vargs.unshift('descendent:sent')

@@ -306,10 +306,10 @@ function prove (okay) {
             body: 1
         }, 'mock parent')
     })
-    descendent.up([ 0 ], 'up', 1)
+    descendent.up([ 1 ], 'up', 1)
 
-    descendent.addMockChild(2, {})
-    descendent.children[2].once('descendent:sent', function (message) {
+    descendent.addMockChild(3, {})
+    descendent.children[3].once('descendent:sent', function (message) {
         okay({
             name: message.name,
             body: message.body
@@ -318,9 +318,9 @@ function prove (okay) {
             body: 1
         }, 'mock child')
     })
-    descendent.down([ 1, 2 ], 'down', 1)
-    descendent.removeChild(2)
-    okay(! descendent.children[2], 'remove child by pid')
+    descendent.down([ 2, 3 ], 'down', 1)
+    descendent.removeChild(3)
+    okay(! descendent.children[3], 'remove child by pid')
 
     descendent.decrement()
 }
