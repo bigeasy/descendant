@@ -33,7 +33,7 @@ function prove (okay) {
             name: 'hello:world',
             from: [ 1, 2 ],
             to: [],
-            path: [ 1, 2, 1 ],
+            path: [ 1 ],
             body: 'to sibling'
         }],
         message: 'to sibling'

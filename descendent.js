@@ -171,7 +171,7 @@ function up (descendent, cookie, pid) {
                         name: message.name,
                         to: message.to.slice(1),
                         from: message.path.slice(),
-                        path: message.path.slice(),
+                        path: [],
                         body: message.body
                     }
                     descendent._listener.apply(null, vargs)
