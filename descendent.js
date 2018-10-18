@@ -57,13 +57,17 @@ function down (descendent) {
             } else {
                 var child = descendent.children[message.to[0]]
                 if (child != null) {
+                    if (vargs[1] != null) {
+                        vargs.push(function (error) {
+                            if (error) {
+                                vargs[1].destroy()
+                            }
+                        })
+                    }
                     if (child.connected) {
                         message.to.shift()
                         vargs[0] = message
                         child.send.apply(child, vargs)
-                    }
-                    if (vargs[1] != null) {
-                        vargs[1].destroy()
                     }
                 }
             }
@@ -113,11 +117,15 @@ Descendent.prototype.increment = function () {
 }
 
 Descendent.prototype._send = function (vargs) {
+    if (vargs[1] != null) {
+        vargs.push(function (error) {
+            if (error) {
+                vargs[1].destroy()
+            }
+        })
+    }
     if (this.process.connected) {
         this.process.send.apply(this.process, vargs)
-    }
-    if (vargs[1] != null) {
-        vargs[1].destroy()
     }
 }
 
