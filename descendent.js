@@ -68,6 +68,8 @@ function down (descendent) {
                         message.to.shift()
                         vargs[0] = message
                         child.send.apply(child, vargs)
+                    } else if (vargs[1] != null) {
+                        vargs[1].destroy()
                     }
                 }
             }
@@ -126,6 +128,8 @@ Descendent.prototype._send = function (vargs) {
     }
     if (this.process.connected) {
         this.process.send.apply(this.process, vargs)
+    } else if (vargs[1] != null) {
+        vargs[1].destroy()
     }
 }
 
