@@ -57,20 +57,9 @@ function down (descendent) {
             } else {
                 var child = descendent.children[message.to[0]]
                 if (child != null) {
-                    if (vargs[1] != null) {
-                        vargs.push(function (error) {
-                            if (error) {
-                                vargs[1].destroy()
-                            }
-                        })
-                    }
-                    if (child.connected) {
-                        message.to.shift()
-                        vargs[0] = message
-                        child.send.apply(child, vargs)
-                    } else if (vargs[1] != null) {
-                        vargs[1].destroy()
-                    }
+                    message.to.shift()
+                    vargs[0] = message
+                    send(child, vargs)
                 }
             }
         } else {
@@ -118,7 +107,7 @@ Descendent.prototype.increment = function () {
     }
 }
 
-Descendent.prototype._send = function (vargs) {
+function send (destination, vargs) {
     if (vargs[1] != null) {
         vargs.push(function (error) {
             if (error) {
@@ -126,8 +115,8 @@ Descendent.prototype._send = function (vargs) {
             }
         })
     }
-    if (this.process.connected) {
-        this.process.send.apply(this.process, vargs)
+    if (destination.connected) {
+        destination.send.apply(destination, vargs)
     } else if (vargs[1] != null) {
         vargs[1].destroy()
     }
@@ -193,7 +182,7 @@ function up (descendent, cookie, pid) {
                 message.to[0] !== descendent.process.pid
             ) {
                 vargs[0] = message
-                descendent._send(vargs)
+                send(descendent.process, vargs)
             }
         } else {
             vargs[0] = {
@@ -275,7 +264,7 @@ Descendent.prototype.up = function (to, name, message) {
         path: [ this.process.pid ],
         body: message
     }
-    this._send(vargs)
+    send(this.process, vargs)
 }
 
 // Send a message down to a child. Path is the full path to the child with an

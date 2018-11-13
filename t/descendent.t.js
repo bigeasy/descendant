@@ -1,4 +1,4 @@
-require('proof')(29, prove)
+require('proof')(30, prove)
 
 function prove (okay) {
     var Descendent = require('../descendent')
@@ -123,7 +123,8 @@ function prove (okay) {
             path: [ 1 ],
             body: 'down include self'
         }],
-        message: 'down include self'
+        message: 'down include self',
+        callback: []
     }, {
         vargs: [{
             module: 'descendent',
@@ -134,7 +135,8 @@ function prove (okay) {
             path: [ 1 ],
             body: 'down without self'
         }],
-        message: 'down without self'
+        message: 'down without self',
+        callback: [ new Error('error') ]
     }, {
         vargs: [{
             module: 'descendent',
@@ -170,8 +172,16 @@ function prove (okay) {
     }]
 
     function asExpected (value) {
-        var expected = expect.shift()
-        okay(Array.prototype.slice.call(arguments), expected.vargs, expected.message)
+        var expected = expect.shift(), callback
+        var vargs = Array.prototype.slice.call(arguments)
+        if (typeof vargs[vargs.length - 1] == 'function') {
+            callback = vargs.pop()
+            vargs.pop()
+        }
+        okay(vargs, expected.vargs, expected.message)
+        if (callback) {
+            callback.apply(null, expected.callback)
+        }
     }
 
     // Send messages past the parent that should do nothing.
@@ -263,8 +273,12 @@ function prove (okay) {
     descendent.on('down', asExpected)
     parent.emit('message', 3)
 
-    descendent.down([ 1, 2, 3 ], 'hello:world', 'down include self')
-    descendent.down([ 2, 3 ], 'hello:world', 'down without self')
+    descendent.down([ 1, 2, 3 ], 'hello:world', 'down include self', {
+        destroy: function () { throw new Error }
+    })
+    descendent.down([ 2, 3 ], 'hello:world', 'down without self', {
+        destroy: function () { okay(true, 'destroyed') }
+    })
 
     descendent.across('hello:world', 1)
 
