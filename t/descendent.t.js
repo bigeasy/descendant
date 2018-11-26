@@ -277,7 +277,7 @@ function prove (okay) {
         destroy: function () { throw new Error }
     })
     descendent.down([ 2, 3 ], 'hello:world', 'down without self', {
-        destroy: function () { okay(true, 'destroyed') }
+        destroy: function () { okay('destroyed') }
     })
 
     descendent.across('hello:world', 1)
@@ -290,7 +290,7 @@ function prove (okay) {
     parent.connected = false
     descendent.up([ 9 ], 'hello:world', 'up up and out array', {
         destroy: function () {
-            okay(true, 'up destroyed')
+            okay('up destroyed')
         }
     })
 
@@ -298,7 +298,7 @@ function prove (okay) {
     descendent.addChild(child, 3)
     descendent.down([ 2, 3 ], 'hello:world', 'down disconneted', {
         destroy: function () {
-            okay(true, 'down destroyed')
+            okay('down destroyed')
         }
     })
 
