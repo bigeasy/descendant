@@ -1,6 +1,6 @@
 {
     "name":                 "descendent",
-    "version":              "0.10.5",
+    "version":              "1.0.0",
     "description":
 
       "Route messages through a process hierarchy using Node.js IPC.",
