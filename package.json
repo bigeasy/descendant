@@ -24,10 +24,9 @@
     },
     "devDependencies":
     {
-                            "proof":                        "7.0.x"
     },
     "scripts":
     {
-                            "test": "proof test test/*.t.js"
+                            "test": "mocha"
     }
 }
