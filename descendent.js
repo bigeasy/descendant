@@ -1,37 +1,21 @@
-var util = require('util')
-var events = require('events')
+const events = require('events')
+const coalesce = require('extant')
+const assert = require('assert')
 
-var coalesce = require('extant')
-
-var assert = require('assert')
-
-// TODO Could use `-1` to mean go up one. `0` means root. Or else `-Infinity`
-// means to the root. No, `0` because `-Infinity` is not valid JSON. Overshoot
-// and it stops at the root.
-
-function Descendent (process) {
-    var descendent = this
-    this.process = process
-    this.children = {}
-    this._listeners = {}
-    this._counter = 0
-    events.EventEmitter.call(this)
-}
-util.inherits(Descendent, events.EventEmitter)
-
-Descendent.prototype.createMockProcess = function () {
-    var process = new events.EventEmitter
-    process.pid = 2
-    process.env = { 'DESCENDENT_PROCESS_PATH': '1' }
-    process.send = function (message, socket) {
-        var vargs = Array.prototype.slice.call(arguments)
-        vargs.unshift('descendent:sent')
-        process.emit.apply(process, vargs)
+function send (destination, vargs) {
+    if (vargs[1] != null) {
+        vargs.push(function (error) {
+            if (error) {
+                vargs[1].destroy()
+            }
+        })
     }
-    process.connected = true
-    this.process = process
+    if (destination.connected) {
+        destination.send.apply(destination, vargs)
+    } else if (vargs[1] != null) {
+        vargs[1].destroy()
+    }
 }
-
 function down (descendent) {
     return function (message) {
         var vargs = Array.prototype.slice.call(arguments)
@@ -74,51 +58,6 @@ function down (descendent) {
             vargs.unshift('down')
             descendent.emit.apply(descendent, vargs)
         }
-    }
-}
-
-Descendent.prototype.decrement = function () {
-    if (--this._counter == 0) {
-        this.process.removeListener('message', this._listener)
-        Object.keys(this.children).forEach(function (pid) {
-            this.removeChild(this.children[pid])
-        }, this)
-        if (this._parentProcessPath == null) {
-            delete this.process.env.DESCENDENT_PROCESS_PATH
-        } else {
-            this.process.env.DESCENDENT_PROCESS_PATH = this._parentProcessPath
-        }
-        this.path = null
-    }
-}
-
-Descendent.prototype.increment = function () {
-    if (this._counter++ == 0) {
-        this._parentProcessPath = coalesce(this.process.env.DESCENDENT_PROCESS_PATH)
-        this.path = coalesce(this._parentProcessPath, '0').split(/\s+/).map(function (pid) {
-            return +pid
-        })
-        if (this.path[0] === 0) {
-            this.path = []
-        }
-        this.path.push(this.process.pid)
-        this.process.env.DESCENDENT_PROCESS_PATH = this.path.join(' ')
-        this.process.on('message', this._listener = down(this))
-    }
-}
-
-function send (destination, vargs) {
-    if (vargs[1] != null) {
-        vargs.push(function (error) {
-            if (error) {
-                vargs[1].destroy()
-            }
-        })
-    }
-    if (destination.connected) {
-        destination.send.apply(destination, vargs)
-    } else if (vargs[1] != null) {
-        vargs[1].destroy()
     }
 }
 
@@ -215,95 +154,155 @@ function close (descendent, cookie, child) {
     }
 }
 
-Descendent.prototype.addMockChild = function (pid, cookie) {
-    var child = new events.EventEmitter
-    child.pid = pid
-    child.connected = true
-    child.send = function () {
-        var vargs = Array.prototype.slice.call(arguments)
-        vargs.unshift('descendent:sent')
-        this.emit.apply(this, vargs)
-    }
-    this.addChild(child, cookie)
-    return child
-}
+// TODO Could use `-1` to mean go up one. `0` means root. Or else `-Infinity`
+// means to the root. No, `0` because `-Infinity` is not valid JSON. Overshoot
+// and it stops at the root.
 
-Descendent.prototype.addChild = function (child, cookie) {
-    this.children[child.pid] = child
-    var listeners = this._listeners[child.pid] = {
-        message: up(this,  cookie, child.pid),
-        close: close(this, cookie, child)
+class Descendent extends events.EventEmitter {
+    constructor (process) {
+        super()
+        var descendent = this
+        this.process = process
+        this.children = {}
+        this._listeners = {}
+        this._counter = 0
+        events.EventEmitter.call(this)
     }
-    child.on('message', listeners.message)
-    child.on('close', listeners.close)
 
-}
+    createMockProcess () {
+        var process = new events.EventEmitter
+        process.pid = 2
+        process.env = { 'DESCENDENT_PROCESS_PATH': '1' }
+        process.send = function (message, socket) {
+            var vargs = Array.prototype.slice.call(arguments)
+            vargs.unshift('descendent:sent')
+            process.emit.apply(process, vargs)
+        }
+        process.connected = true
+        this.process = process
+    }
 
-Descendent.prototype.removeChild = function (child) {
-    if (Number.isInteger(child)) {
-        child = this.children[child]
-    }
-    var listeners = this._listeners[child.pid]
-    delete this.children[child.pid]
-    delete this._listeners[child.pid]
-    child.removeListener('message', listeners.message)
-    child.removeListener('close', listeners.close)
-}
 
-Descendent.prototype.up = function (to, name, message) {
-    var vargs = Array.prototype.slice.call(arguments, 2)
-    if (!Array.isArray(to)) {
-        to = [ to ]
+    decrement () {
+        if (--this._counter == 0) {
+            this.process.removeListener('message', this._listener)
+            Object.keys(this.children).forEach(function (pid) {
+                this.removeChild(this.children[pid])
+            }, this)
+            if (this._parentProcessPath == null) {
+                delete this.process.env.DESCENDENT_PROCESS_PATH
+            } else {
+                this.process.env.DESCENDENT_PROCESS_PATH = this._parentProcessPath
+            }
+            this.path = null
+        }
     }
-    assert(to[0] !== 0 || vargs.length === 1, 'cannot broadcast a handle')
-    vargs[0] = {
-        module: 'descendent',
-        method: 'route',
-        name: name,
-        to: to,
-        path: [ this.process.pid ],
-        body: message
-    }
-    send(this.process, vargs)
-}
 
-// Send a message down to a child. Path is the full path to the child with an
-// entry for each process in the path to the child, so that we are able to
-// address children of children and their children and so on. The `name` is the
-// name of the event emitted on the `Descendent` object in the child.
-Descendent.prototype.down = function (path, name, message) {
-    var vargs = Array.prototype.slice.call(arguments, 2)
-    var envelope = vargs[0] = {
-        module: 'descendent',
-        method: 'route',
-        name: name,
-        to: path.slice(),
-        from: [ this.process.pid ],
-        path: [],
-        body: message
+    increment () {
+        if (this._counter++ == 0) {
+            this._parentProcessPath = coalesce(this.process.env.DESCENDENT_PROCESS_PATH)
+            this.path = coalesce(this._parentProcessPath, '0').split(/\s+/).map(function (pid) {
+                return +pid
+            })
+            if (this.path[0] === 0) {
+                this.path = []
+            }
+            this.path.push(this.process.pid)
+            this.process.env.DESCENDENT_PROCESS_PATH = this.path.join(' ')
+            this.process.on('message', this._listener = down(this))
+        }
     }
-    if (envelope.to[0] == this.process.pid) {
-        envelope.to.shift()
-    }
-    this._listener.apply(null, vargs)
-}
 
-// Useful for unit testing, sending a message across means sending it directly.
-// We can't just use `down` nor `up` because they will remove a reference to
-// self as a convenience.
-Descendent.prototype.across = function (name, message) {
-    var vargs = Array.prototype.slice.call(arguments, 1)
-    var envelope = vargs[0] = {
-        module: 'descendent',
-        method: 'route',
-        name: name,
-        from: [],
-        to: [],
-        path: [],
-        body: message
+    addMockChild (pid, cookie) {
+        var child = new events.EventEmitter
+        child.pid = pid
+        child.connected = true
+        child.send = function () {
+            var vargs = Array.prototype.slice.call(arguments)
+            vargs.unshift('descendent:sent')
+            this.emit.apply(this, vargs)
+        }
+        this.addChild(child, cookie)
+        return child
     }
-    vargs.unshift('message')
-    this.process.emit.apply(this.process, vargs)
+
+    addChild (child, cookie) {
+        this.children[child.pid] = child
+        var listeners = this._listeners[child.pid] = {
+            message: up(this,  cookie, child.pid),
+            close: close(this, cookie, child)
+        }
+        child.on('message', listeners.message)
+        child.on('close', listeners.close)
+
+    }
+
+    removeChild (child) {
+        if (Number.isInteger(child)) {
+            child = this.children[child]
+        }
+        var listeners = this._listeners[child.pid]
+        delete this.children[child.pid]
+        delete this._listeners[child.pid]
+        child.removeListener('message', listeners.message)
+        child.removeListener('close', listeners.close)
+    }
+
+    up (to, name, message) {
+        var vargs = Array.prototype.slice.call(arguments, 2)
+        if (!Array.isArray(to)) {
+            to = [ to ]
+        }
+        assert(to[0] !== 0 || vargs.length === 1, 'cannot broadcast a handle')
+        vargs[0] = {
+            module: 'descendent',
+            method: 'route',
+            name: name,
+            to: to,
+            path: [ this.process.pid ],
+            body: message
+        }
+        send(this.process, vargs)
+    }
+
+    // Send a message down to a child. Path is the full path to the child with an
+    // entry for each process in the path to the child, so that we are able to
+    // address children of children and their children and so on. The `name` is the
+    // name of the event emitted on the `Descendent` object in the child.
+    down (path, name, message) {
+        var vargs = Array.prototype.slice.call(arguments, 2)
+        var envelope = vargs[0] = {
+            module: 'descendent',
+            method: 'route',
+            name: name,
+            to: path.slice(),
+            from: [ this.process.pid ],
+            path: [],
+            body: message
+        }
+        if (envelope.to[0] == this.process.pid) {
+            envelope.to.shift()
+        }
+        this._listener.apply(null, vargs)
+    }
+
+    // Useful for unit testing, sending a message across means sending it directly.
+    // We can't just use `down` nor `up` because they will remove a reference to
+    // self as a convenience.
+    across (name, message) {
+        var vargs = Array.prototype.slice.call(arguments, 1)
+        var envelope = vargs[0] = {
+            module: 'descendent',
+            method: 'route',
+            name: name,
+            from: [],
+            to: [],
+            path: [],
+            body: message
+        }
+        vargs.unshift('message')
+        this.process.emit.apply(this.process, vargs)
+    }
 }
 
 module.exports = Descendent
