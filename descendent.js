@@ -1,6 +1,7 @@
-const events = require('events')
-const coalesce = require('extant')
 const assert = require('assert')
+const events = require('events')
+
+const coalesce = require('extant')
 
 function send (destination, vargs) {
     if (vargs[1] != null) {
