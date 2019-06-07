@@ -78,13 +78,12 @@ function up (descendent, cookie, pid) {
             // Was using zero to mean go to the root, but that doesn't mean
             // anything because we could be running underneath a Node.js
             // supervisor of some sort that enabled `'ipc'`, so is that
-            // anonymous process the root? We should always specify a PID
-            // for the destination, which can be set in an environment
-            // variable. We could visit everyone on the way up, but if we
-            // have a handle and a visitor consumes it, but then we
-            // propagate it, then the visitor loses the handle. Well, we
-            // could assert that if we're going up with `0` that no handle
-            // is passed, so we could revisit this.
+            // anonymous process the root? We should always specify a PID for
+            // the destination, which can be set in an environment variable. We
+            // could visit everyone on the way up, but if we have a handle and a
+            // visitor consumes it, but then we propagate it, then the visitor
+            // loses the handle. Well, we could assert that if we're going up
+            // with `0` that no handle is passed, so we could revisit this.
             message.path.unshift(descendent.process.pid)
             if (
                 message.to[0] === descendent.process.pid ||
@@ -266,10 +265,10 @@ class Descendent extends events.EventEmitter {
         send(this.process, vargs)
     }
 
-    // Send a message down to a child. Path is the full path to the child with an
-    // entry for each process in the path to the child, so that we are able to
-    // address children of children and their children and so on. The `name` is the
-    // name of the event emitted on the `Descendent` object in the child.
+    // Send a message down to a child. Path is the full path to the child with
+    // an entry for each process in the path to the child, so that we are able
+    // to address children of children and their children and so on. The `name`
+    // is the name of the event emitted on the `Descendent` object in the child.
     down (path, name, message) {
         var vargs = Array.prototype.slice.call(arguments, 2)
         var envelope = vargs[0] = {
@@ -287,9 +286,9 @@ class Descendent extends events.EventEmitter {
         this._listener.apply(null, vargs)
     }
 
-    // Useful for unit testing, sending a message across means sending it directly.
-    // We can't just use `down` nor `up` because they will remove a reference to
-    // self as a convenience.
+    // Useful for unit testing, sending a message across means sending it
+    // directly. We can't just use `down` nor `up` because they will remove a
+    // reference to self as a convenience.
     across (name, message) {
         var vargs = Array.prototype.slice.call(arguments, 1)
         var envelope = vargs[0] = {
