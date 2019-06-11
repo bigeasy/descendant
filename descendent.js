@@ -17,6 +17,7 @@ function send (destination, vargs) {
         vargs[1].destroy()
     }
 }
+
 function down (descendent) {
     return function (message) {
         var vargs = Array.prototype.slice.call(arguments)
