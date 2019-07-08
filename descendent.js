@@ -20,7 +20,7 @@ function send (destination, vargs) {
 
 function down (descendent) {
     return function (message) {
-        var vargs = Array.prototype.slice.call(arguments)
+        const vargs = Array.prototype.slice.call(arguments)
         if (
             message.module == 'descendent' &&
             message.method == 'route' &&
@@ -41,7 +41,7 @@ function down (descendent) {
                 vargs.unshift(message.name)
                 descendent.emit.apply(descendent, vargs)
             } else {
-                var child = descendent.children[message.to[0]]
+                const child = descendent.children[message.to[0]]
                 if (child != null) {
                     message.to.shift()
                     vargs[0] = message
@@ -65,7 +65,7 @@ function down (descendent) {
 
 function up (descendent, cookie, pid) {
     return function (message) {
-        var vargs = Array.prototype.slice.call(arguments)
+        const vargs = Array.prototype.slice.call(arguments)
         if (
             message.module == 'descendent' &&
             message.method == 'route' &&
@@ -141,7 +141,7 @@ function up (descendent, cookie, pid) {
 function close (descendent, cookie, child) {
     return function (exitCode, signal) {
         assert(!child.connected, 'child is still connected')
-        var listeners = descendent._listeners[child.pid]
+        const listeners = descendent._listeners[child.pid]
         descendent.removeChild(child)
         // Pretend that the child announced it's own exit.
         listeners.message.call(null, {
@@ -162,7 +162,7 @@ function close (descendent, cookie, child) {
 class Descendent extends events.EventEmitter {
     constructor (process) {
         super()
-        var descendent = this
+        const descendent = this
         this.process = process
         this.children = {}
         this._listeners = {}
@@ -171,11 +171,11 @@ class Descendent extends events.EventEmitter {
     }
 
     createMockProcess () {
-        var process = new events.EventEmitter
+        const process = new events.EventEmitter
         process.pid = 2
         process.env = { 'DESCENDENT_PROCESS_PATH': '1' }
         process.send = function (message, socket) {
-            var vargs = Array.prototype.slice.call(arguments)
+            const vargs = Array.prototype.slice.call(arguments)
             vargs.unshift('descendent:sent')
             process.emit.apply(process, vargs)
         }
@@ -215,11 +215,11 @@ class Descendent extends events.EventEmitter {
     }
 
     addMockChild (pid, cookie) {
-        var child = new events.EventEmitter
+        const child = new events.EventEmitter
         child.pid = pid
         child.connected = true
         child.send = function () {
-            var vargs = Array.prototype.slice.call(arguments)
+            const vargs = Array.prototype.slice.call(arguments)
             vargs.unshift('descendent:sent')
             this.emit.apply(this, vargs)
         }
@@ -229,7 +229,7 @@ class Descendent extends events.EventEmitter {
 
     addChild (child, cookie) {
         this.children[child.pid] = child
-        var listeners = this._listeners[child.pid] = {
+        const listeners = this._listeners[child.pid] = {
             message: up(this,  cookie, child.pid),
             close: close(this, cookie, child)
         }
@@ -242,7 +242,7 @@ class Descendent extends events.EventEmitter {
         if (Number.isInteger(child)) {
             child = this.children[child]
         }
-        var listeners = this._listeners[child.pid]
+        const listeners = this._listeners[child.pid]
         delete this.children[child.pid]
         delete this._listeners[child.pid]
         child.removeListener('message', listeners.message)
@@ -250,7 +250,7 @@ class Descendent extends events.EventEmitter {
     }
 
     up (to, name, message) {
-        var vargs = Array.prototype.slice.call(arguments, 2)
+        const vargs = Array.prototype.slice.call(arguments, 2)
         if (!Array.isArray(to)) {
             to = [ to ]
         }
@@ -271,8 +271,8 @@ class Descendent extends events.EventEmitter {
     // to address children of children and their children and so on. The `name`
     // is the name of the event emitted on the `Descendent` object in the child.
     down (path, name, message) {
-        var vargs = Array.prototype.slice.call(arguments, 2)
-        var envelope = vargs[0] = {
+        const vargs = Array.prototype.slice.call(arguments, 2)
+        const envelope = vargs[0] = {
             module: 'descendent',
             method: 'route',
             name: name,
@@ -291,8 +291,8 @@ class Descendent extends events.EventEmitter {
     // directly. We can't just use `down` nor `up` because they will remove a
     // reference to self as a convenience.
     across (name, message) {
-        var vargs = Array.prototype.slice.call(arguments, 1)
-        var envelope = vargs[0] = {
+        const vargs = Array.prototype.slice.call(arguments, 1)
+        const envelope = vargs[0] = {
             module: 'descendent',
             method: 'route',
             name: name,
