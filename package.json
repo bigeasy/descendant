@@ -1,5 +1,5 @@
 {
-    "name":                 "descendent",
+    "name":                 "descendant",
     "version":              "2.0.2",
     "description":
 
@@ -10,13 +10,13 @@
                             "bluey", "socket", "ipc"
     ],
     "author":               "Alan Gutierrez <alan@prettyrobots.com>",
-    "homepage":             "https://github.com/bigeasy/descendent",
-    "bugs":                 "https://github.com/bigeasy/descendent/issues",
+    "homepage":             "https://github.com/bigeasy/descendant",
+    "bugs":                 "https://github.com/bigeasy/descendant/issues",
     "license":              "MIT",
     "repository":
     {
                             "type": "git",
-                            "url": "bigeasy/descendent"
+                            "url": "bigeasy/descendant"
     },
     "dependencies":
     {

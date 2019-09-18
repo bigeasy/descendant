@@ -18,20 +18,20 @@ function send (destination, vargs) {
     }
 }
 
-function down (descendent) {
+function down (descendant) {
     return function (message) {
         const vargs = Array.prototype.slice.call(arguments)
         if (
-            message.module == 'descendent' &&
+            message.module == 'descendant' &&
             message.method == 'route' &&
             Array.isArray(message.to) &&
             Array.isArray(message.path)
         ) {
             message = JSON.parse(JSON.stringify(message))
-            message.path.push(descendent.process.pid)
+            message.path.push(descendant.process.pid)
             if (message.to.length == 0) {
                 vargs[0] = {
-                    module: 'descendent',
+                    module: 'descendant',
                     method: 'route',
                     name: message.name,
                     from: message.from,
@@ -39,9 +39,9 @@ function down (descendent) {
                     body: message.body
                 }
                 vargs.unshift(message.name)
-                descendent.emit.apply(descendent, vargs)
+                descendant.emit.apply(descendant, vargs)
             } else {
-                const child = descendent.children[message.to[0]]
+                const child = descendant.children[message.to[0]]
                 if (child != null) {
                     message.to.shift()
                     vargs[0] = message
@@ -53,21 +53,21 @@ function down (descendent) {
             // `"up"`, even though we don't really add any meaningful
             // information to the envelope.
             vargs[0] = {
-                module: 'descendent',
+                module: 'descendant',
                 method: 'down',
                 body: message
             }
             vargs.unshift('down')
-            descendent.emit.apply(descendent, vargs)
+            descendant.emit.apply(descendant, vargs)
         }
     }
 }
 
-function up (descendent, cookie, pid) {
+function up (descendant, cookie, pid) {
     return function (message) {
         const vargs = Array.prototype.slice.call(arguments)
         if (
-            message.module == 'descendent' &&
+            message.module == 'descendant' &&
             message.method == 'route' &&
             Array.isArray(message.to) &&
             Array.isArray(message.path)
@@ -85,16 +85,16 @@ function up (descendent, cookie, pid) {
             // visitor consumes it, but then we propagate it, then the visitor
             // loses the handle. Well, we could assert that if we're going up
             // with `0` that no handle is passed, so we could revisit this.
-            message.path.unshift(descendent.process.pid)
+            message.path.unshift(descendant.process.pid)
             if (
-                message.to[0] === descendent.process.pid ||
+                message.to[0] === descendant.process.pid ||
                 message.to[0] === 0
             ) {
                 // TODO What sort of path information do you add to a
                 // redirect?
                 if (message.to.length == 1) {
                     vargs[0] = {
-                        module: 'descendent',
+                        module: 'descendant',
                         method: 'route',
                         name: message.name,
                         to: message.to,
@@ -103,11 +103,11 @@ function up (descendent, cookie, pid) {
                         cookie: message.cookie
                     }
                     vargs.unshift(message.name)
-                    descendent.emit.apply(descendent, vargs)
+                    descendant.emit.apply(descendant, vargs)
                     vargs.shift()
                 } else {
                     vargs[0] = {
-                        module: 'descendent',
+                        module: 'descendant',
                         method: 'route',
                         name: message.name,
                         to: message.to.slice(1),
@@ -115,39 +115,39 @@ function up (descendent, cookie, pid) {
                         path: [],
                         body: message.body
                     }
-                    descendent._listener.apply(null, vargs)
+                    descendant._listener.apply(null, vargs)
                 }
             }
             if (
-                message.to[0] !== descendent.process.pid
+                message.to[0] !== descendant.process.pid
             ) {
                 vargs[0] = message
-                send(descendent.process, vargs)
+                send(descendant.process, vargs)
             }
         } else {
             vargs[0] = {
-                module: 'descendent',
+                module: 'descendant',
                 method: 'up',
-                from: [ descendent.process.pid, pid ],
+                from: [ descendant.process.pid, pid ],
                 cookie: coalesce(cookie),
                 body: message
             }
             vargs.unshift('up')
-            descendent.emit.apply(descendent, vargs)
+            descendant.emit.apply(descendant, vargs)
         }
     }
 }
 
-function close (descendent, cookie, child) {
+function close (descendant, cookie, child) {
     return function (exitCode, signal) {
         assert(!child.connected, 'child is still connected')
-        const listeners = descendent._listeners[child.pid]
-        descendent.removeChild(child)
+        const listeners = descendant._listeners[child.pid]
+        descendant.removeChild(child)
         // Pretend that the child announced it's own exit.
         listeners.message.call(null, {
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
-            name: 'descendent:close',
+            name: 'descendant:close',
             to: [ 0 ],
             path: [ child.pid ],
             body: { exitCode: exitCode, signal: signal }
@@ -159,10 +159,10 @@ function close (descendent, cookie, child) {
 // means to the root. No, `0` because `-Infinity` is not valid JSON. Overshoot
 // and it stops at the root.
 
-class Descendent extends events.EventEmitter {
+class Descendant extends events.EventEmitter {
     constructor (process) {
         super()
-        const descendent = this
+        const descendant = this
         this.process = process
         this.children = {}
         this._listeners = {}
@@ -173,10 +173,10 @@ class Descendent extends events.EventEmitter {
     createMockProcess () {
         const process = new events.EventEmitter
         process.pid = 2
-        process.env = { 'DESCENDENT_PROCESS_PATH': '1' }
+        process.env = { 'DESCENDANT_PROCESS_PATH': '1' }
         process.send = function (message, socket) {
             const vargs = Array.prototype.slice.call(arguments)
-            vargs.unshift('descendent:sent')
+            vargs.unshift('descendant:sent')
             process.emit.apply(process, vargs)
         }
         process.connected = true
@@ -191,9 +191,9 @@ class Descendent extends events.EventEmitter {
                 this.removeChild(this.children[pid])
             }, this)
             if (this._parentProcessPath == null) {
-                delete this.process.env.DESCENDENT_PROCESS_PATH
+                delete this.process.env.DESCENDANT_PROCESS_PATH
             } else {
-                this.process.env.DESCENDENT_PROCESS_PATH = this._parentProcessPath
+                this.process.env.DESCENDANT_PROCESS_PATH = this._parentProcessPath
             }
             this.path = null
         }
@@ -201,7 +201,7 @@ class Descendent extends events.EventEmitter {
 
     increment () {
         if (this._counter++ == 0) {
-            this._parentProcessPath = coalesce(this.process.env.DESCENDENT_PROCESS_PATH)
+            this._parentProcessPath = coalesce(this.process.env.DESCENDANT_PROCESS_PATH)
             this.path = coalesce(this._parentProcessPath, '0').split(/\s+/).map(function (pid) {
                 return +pid
             })
@@ -209,7 +209,7 @@ class Descendent extends events.EventEmitter {
                 this.path = []
             }
             this.path.push(this.process.pid)
-            this.process.env.DESCENDENT_PROCESS_PATH = this.path.join(' ')
+            this.process.env.DESCENDANT_PROCESS_PATH = this.path.join(' ')
             this.process.on('message', this._listener = down(this))
         }
     }
@@ -220,7 +220,7 @@ class Descendent extends events.EventEmitter {
         child.connected = true
         child.send = function () {
             const vargs = Array.prototype.slice.call(arguments)
-            vargs.unshift('descendent:sent')
+            vargs.unshift('descendant:sent')
             this.emit.apply(this, vargs)
         }
         this.addChild(child, cookie)
@@ -256,7 +256,7 @@ class Descendent extends events.EventEmitter {
         }
         assert(to[0] !== 0 || vargs.length === 1, 'cannot broadcast a handle')
         vargs[0] = {
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             name: name,
             to: to,
@@ -269,11 +269,11 @@ class Descendent extends events.EventEmitter {
     // Send a message down to a child. Path is the full path to the child with
     // an entry for each process in the path to the child, so that we are able
     // to address children of children and their children and so on. The `name`
-    // is the name of the event emitted on the `Descendent` object in the child.
+    // is the name of the event emitted on the `Descendant` object in the child.
     down (path, name, message) {
         const vargs = Array.prototype.slice.call(arguments, 2)
         const envelope = vargs[0] = {
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             name: name,
             to: path.slice(),
@@ -293,7 +293,7 @@ class Descendent extends events.EventEmitter {
     across (name, message) {
         const vargs = Array.prototype.slice.call(arguments, 1)
         const envelope = vargs[0] = {
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             name: name,
             from: [],
@@ -306,4 +306,4 @@ class Descendent extends events.EventEmitter {
     }
 }
 
-module.exports = Descendent
+module.exports = Descendant

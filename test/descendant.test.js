@@ -1,10 +1,10 @@
-describe('descendent', () => {
+describe('descendant', () => {
     const assert = require('assert')
-    const Descendent = require('../descendant')
+    const Descendant = require('../descendant')
     const events = require('events')
     const expect = [{
         vargs: [{
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             name: 'hello:world',
             to: [ 1 ],
@@ -15,7 +15,7 @@ describe('descendent', () => {
         message: 'to top'
     }, {
         vargs: [{
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             name: 'hello:world',
             to: [ 0 ],
@@ -26,7 +26,7 @@ describe('descendent', () => {
         message: 'everyone on the way up'
     }, {
         vargs: [{
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             name: 'hello:world',
             from: [ 1, 2 ],
@@ -37,7 +37,7 @@ describe('descendent', () => {
         message: 'to sibling'
     }, {
         vargs: [{
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             name: 'hello:world',
             to: [ 9 ],
@@ -47,7 +47,7 @@ describe('descendent', () => {
         message: 'up up and out'
     }, {
         vargs: [{
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             name: 'hello:world',
             to: [ 9 ],
@@ -57,7 +57,7 @@ describe('descendent', () => {
         message: 'up up and out array'
     }, {
         vargs: [{
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             name: 'hello:world',
             to: [ 0 ],
@@ -67,7 +67,7 @@ describe('descendent', () => {
         message: 'up up and out broadcast'
     }, {
         vargs: [{
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             to: [ 9 ],
             path: [ 1, 2 ],
@@ -77,7 +77,7 @@ describe('descendent', () => {
         message: 'child up and out'
     }, {
         vargs: [{
-            module: 'descendent',
+            module: 'descendant',
             from: [ 1, 2 ],
             method: 'up',
             cookie: 2,
@@ -86,7 +86,7 @@ describe('descendent', () => {
         message: 'up message'
     }, {
         vargs: [{
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             name: 'hello:world',
             to: [],
@@ -96,7 +96,7 @@ describe('descendent', () => {
         message: 'parent to child'
     }, {
         vargs: [{
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             name: 'hello:world',
             from: [ 9 ],
@@ -106,14 +106,14 @@ describe('descendent', () => {
         message: 'down received'
     }, {
         vargs: [{
-            module: 'descendent',
+            module: 'descendant',
             method: 'down',
             body: 3
         }],
         message: 'down non-descent message'
     }, {
         vargs: [{
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             name: 'hello:world',
             from: [ 1 ],
@@ -125,7 +125,7 @@ describe('descendent', () => {
         callback: []
     }, {
         vargs: [{
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             name: 'hello:world',
             from: [ 1 ],
@@ -137,7 +137,7 @@ describe('descendent', () => {
         callback: [ new Error('error') ]
     }, {
         vargs: [{
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             name: 'hello:world',
             from: [],
@@ -147,9 +147,9 @@ describe('descendent', () => {
         message: 'across'
     }, {
         vargs: [{
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
-            name: 'descendent:close',
+            name: 'descendant:close',
             to: [ 0 ],
             from: [ 1, 2 ],
             body: { exitCode: 0, signal: null },
@@ -158,9 +158,9 @@ describe('descendent', () => {
         message: 'close handler'
     }, {
         vargs: [{
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
-            name: 'descendent:close',
+            name: 'descendant:close',
             to: [ 0 ],
             path: [ 1, 2 ],
             body: { exitCode: 0, signal: null },
@@ -187,19 +187,19 @@ describe('descendent', () => {
     parent.env = {}
 
     it('can send messages to parents, children and siblings', () => {
-        const descendent = new Descendent(parent)
-        descendent.increment()
-        assert.deepStrictEqual(parent.env, { DESCENDENT_PROCESS_PATH: '1' }, 'path set at root env')
-        assert.deepStrictEqual(descendent.path, [ 1 ], 'path at root')
-        descendent.up(9, 'hello:world', 1)
+        const descendant = new Descendant(parent)
+        descendant.increment()
+        assert.deepStrictEqual(parent.env, { DESCENDANT_PROCESS_PATH: '1' }, 'path set at root env')
+        assert.deepStrictEqual(descendant.path, [ 1 ], 'path at root')
+        descendant.up(9, 'hello:world', 1)
         const child = new events.EventEmitter
         child.pid = 2
-        descendent.addChild(child, 2)
-        child.emit('message', { module: 'descendent', method: 'route', to: [ 3 ], path: [] })
-        descendent.on('hello:world', asExpected)
+        descendant.addChild(child, 2)
+        child.emit('message', { module: 'descendant', method: 'route', to: [ 3 ], path: [] })
+        descendant.on('hello:world', asExpected)
         // Send a message that defaults to the parent.
         child.emit('message', {
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             name: 'hello:world',
             to: [ 1 ],
@@ -207,7 +207,7 @@ describe('descendent', () => {
             body: 'to top'
         })
         child.emit('message', {
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             name: 'hello:world',
             to: [ 0 ],
@@ -217,48 +217,48 @@ describe('descendent', () => {
         // See if you can send a message to a sibling.
         const sibling = new events.EventEmitter
         sibling.pid = 4
-        descendent.addChild(sibling, 4)
+        descendant.addChild(sibling, 4)
         sibling.send = asExpected
         sibling.connected = true
         child.emit('message', {
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             name: 'hello:world',
             to: [ 1, 4 ],
             path: [ 2 ],
             body: 'to sibling'
         })
-        descendent.decrement()
-        assert(descendent.path == null, 'path at root restored')
-        assert.deepStrictEqual(descendent.process.env, {}, 'path at root env restored')
+        descendant.decrement()
+        assert(descendant.path == null, 'path at root restored')
+        assert.deepStrictEqual(descendant.process.env, {}, 'path at root env restored')
     })
     it('can do other stuff', () => {
         // Send message up out of parent.
         const parent = new events.EventEmitter
         parent.pid = 1
-        parent.env = { DESCENDENT_PROCESS_PATH: '8' }
+        parent.env = { DESCENDANT_PROCESS_PATH: '8' }
         parent.send = asExpected
         parent.connected = true
-        const descendent = new Descendent(parent)
-        descendent.increment()
-        assert.deepStrictEqual(descendent.path, [ 8, 1 ], 'path with parent')
-        assert.deepStrictEqual(parent.env, { DESCENDENT_PROCESS_PATH: '8 1' }, 'path with parent env')
-        descendent.up(9, 'hello:world', 'up up and out')
-        descendent.up([ 9 ], 'hello:world', 'up up and out array')
-        descendent.up([ 0 ], 'hello:world', 'up up and out broadcast')
+        const descendant = new Descendant(parent)
+        descendant.increment()
+        assert.deepStrictEqual(descendant.path, [ 8, 1 ], 'path with parent')
+        assert.deepStrictEqual(parent.env, { DESCENDANT_PROCESS_PATH: '8 1' }, 'path with parent env')
+        descendant.up(9, 'hello:world', 'up up and out')
+        descendant.up([ 9 ], 'hello:world', 'up up and out array')
+        descendant.up([ 0 ], 'hello:world', 'up up and out broadcast')
         const child = new events.EventEmitter
         child.pid = 2
-        descendent.addChild(child, 2)
+        descendant.addChild(child, 2)
         child.emit('message', {
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             to: [ 9 ],
             path: [ 2 ],
             body: 'child up and out'
         })
 
-        // Send a message up and out as a non-descendent message.
-        descendent.on('up', asExpected)
+        // Send a message up and out as a non-descendant message.
+        descendant.on('up', asExpected)
         child.emit('message', { a: 1 })
 
         // Send a message down to the child.
@@ -266,7 +266,7 @@ describe('descendent', () => {
         child.connected = true
         // This one goes nowhere.
         parent.emit('message', {
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             to: [ 3 ],
             path: [],
@@ -275,17 +275,17 @@ describe('descendent', () => {
         })
         // This one goes to the child.
         parent.emit('message', {
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             to: [ 2 ],
             path: [],
             name: 'hello:world',
             body: 'parent to child'
         })
-        // This arrives at the descendent.
-        descendent.on('hello:world', asExpected)
+        // This arrives at the descendant.
+        descendant.on('hello:world', asExpected)
         parent.emit('message', {
-            module: 'descendent',
+            module: 'descendant',
             method: 'route',
             from: [ 9 ],
             to: [],
@@ -293,76 +293,76 @@ describe('descendent', () => {
             name: 'hello:world',
             body: 'down received'
         })
-        // Non-descendent message coming down.
-        descendent.on('down', asExpected)
+        // Non-descendant message coming down.
+        descendant.on('down', asExpected)
         parent.emit('message', 3)
 
-        descendent.down([ 1, 2, 3 ], 'hello:world', 'down include self', {
+        descendant.down([ 1, 2, 3 ], 'hello:world', 'down include self', {
             destroy: function () { throw new Error }
         })
         const destroyed = []
-        descendent.down([ 2, 3 ], 'hello:world', 'down without self', {
+        descendant.down([ 2, 3 ], 'hello:world', 'down without self', {
             destroy: () => destroyed.push(true)
         })
         assert.deepStrictEqual(destroyed.splice(0), [ true ], 'destroyed')
 
-        descendent.across('hello:world', 1)
+        descendant.across('hello:world', 1)
 
-        descendent.on('descendent:close', asExpected)
+        descendant.on('descendant:close', asExpected)
 
         child.connected = false
         child.emit('close', 0, null)
 
         parent.connected = false
-        descendent.up([ 9 ], 'hello:world', 'up up and out array', {
+        descendant.up([ 9 ], 'hello:world', 'up up and out array', {
             destroy: () => destroyed.push(true)
         })
         assert.deepStrictEqual(destroyed.splice(0), [ true ], 'destroyed')
 
         child.connected = false
-        descendent.addChild(child, 3)
-        descendent.down([ 2, 3 ], 'hello:world', 'down disconneted', {
+        descendant.addChild(child, 3)
+        descendant.down([ 2, 3 ], 'hello:world', 'down disconneted', {
             destroy: () => destroyed.push(true)
         })
         assert.deepStrictEqual(destroyed.splice(0), [ true ], 'destroyed')
 
-        descendent.increment()
-        descendent.decrement()
-        descendent.decrement()
-        assert.equal(descendent.path, null, 'path with parent restored')
-        assert.deepStrictEqual(descendent.process.env, {
-            DESCENDENT_PROCESS_PATH: '8'
+        descendant.increment()
+        descendant.decrement()
+        descendant.decrement()
+        assert.equal(descendant.path, null, 'path with parent restored')
+        assert.deepStrictEqual(descendant.process.env, {
+            DESCENDANT_PROCESS_PATH: '8'
         }, 'path with parent env restored')
     })
-    it('can mock a descendent', () => {
+    it('can mock a descendant', () => {
         const test = []
-        const descendent = new Descendent
-        descendent.createMockProcess()
-        descendent.increment()
-        descendent.process.once('descendent:sent', (message) => test.push(message))
-        descendent.up([ 1 ], 'up', 1)
+        const descendant = new Descendant
+        descendant.createMockProcess()
+        descendant.increment()
+        descendant.process.once('descendant:sent', (message) => test.push(message))
+        descendant.up([ 1 ], 'up', 1)
         assert.deepStrictEqual(test.splice(0), [{
             method: 'route',
-            module: 'descendent',
+            module: 'descendant',
             path: [ 2 ],
             to: [ 1 ],
             name: 'up',
             body: 1
         }], 'mock parent')
-        descendent.addMockChild(3, {})
-        descendent.children[3].once('descendent:sent', message => test.push(message))
-        descendent.down([ 2, 3 ], 'down', 1)
+        descendant.addMockChild(3, {})
+        descendant.children[3].once('descendant:sent', message => test.push(message))
+        descendant.down([ 2, 3 ], 'down', 1)
         assert.deepStrictEqual(test.splice(0), [{
             method: 'route',
-            module: 'descendent',
+            module: 'descendant',
             from: [ 2 ],
             path: [ 2 ],
             to: [],
             name: 'down',
             body: 1
         }], 'mock parent')
-        descendent.removeChild(3)
-        assert(! descendent.children[3], 'remove child by pid')
-        descendent.decrement()
+        descendant.removeChild(3)
+        assert(! descendant.children[3], 'remove child by pid')
+        descendant.decrement()
     })
 })
