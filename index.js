@@ -1,3 +1,3 @@
-const Descendent = require('./descendent')
+const Descendent = require('./descendant')
 
 module.exports = new Descendent(process)
