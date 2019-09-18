@@ -1,6 +1,6 @@
 describe('descendent', () => {
     const assert = require('assert')
-    const Descendent = require('..')
+    const Descendent = require('../descendent')
     const events = require('events')
     const expect = [{
         vargs: [{
