@@ -1,5 +1,4 @@
-describe('descendant', () => {
-    const assert = require('assert')
+require('proof')(30, (okay) => {
     const Descendant = require('../descendant')
     const events = require('events')
     const expect = [{
@@ -176,7 +175,7 @@ describe('descendant', () => {
             callback = vargs.pop()
             vargs.pop()
         }
-        assert.deepStrictEqual(vargs, expected.vargs, expected.message)
+        okay(vargs, expected.vargs, expected.message)
         if (callback != null) {
             callback.apply(null, expected.callback)
         }
@@ -185,12 +184,11 @@ describe('descendant', () => {
     const parent = new events.EventEmitter
     parent.pid = 1
     parent.env = {}
-
-    it('can send messages to parents, children and siblings', () => {
+    {
         const descendant = new Descendant(parent)
         descendant.increment()
-        assert.deepStrictEqual(parent.env, { DESCENDANT_PROCESS_PATH: '1' }, 'path set at root env')
-        assert.deepStrictEqual(descendant.path, [ 1 ], 'path at root')
+        okay(parent.env, { DESCENDANT_PROCESS_PATH: '1' }, 'path set at root env')
+        okay(descendant.path, [ 1 ], 'path at root')
         descendant.up(9, 'hello:world', 1)
         const child = new events.EventEmitter
         child.pid = 2
@@ -229,10 +227,10 @@ describe('descendant', () => {
             body: 'to sibling'
         })
         descendant.decrement()
-        assert(descendant.path == null, 'path at root restored')
-        assert.deepStrictEqual(descendant.process.env, {}, 'path at root env restored')
-    })
-    it('can do other stuff', () => {
+        okay(descendant.path == null, 'path at root restored')
+        okay(descendant.process.env, {}, 'path at root env restored')
+    }
+    {
         // Send message up out of parent.
         const parent = new events.EventEmitter
         parent.pid = 1
@@ -241,8 +239,8 @@ describe('descendant', () => {
         parent.connected = true
         const descendant = new Descendant(parent)
         descendant.increment()
-        assert.deepStrictEqual(descendant.path, [ 8, 1 ], 'path with parent')
-        assert.deepStrictEqual(parent.env, { DESCENDANT_PROCESS_PATH: '8 1' }, 'path with parent env')
+        okay(descendant.path, [ 8, 1 ], 'path with parent')
+        okay(parent.env, { DESCENDANT_PROCESS_PATH: '8 1' }, 'path with parent env')
         descendant.up(9, 'hello:world', 'up up and out')
         descendant.up([ 9 ], 'hello:world', 'up up and out array')
         descendant.up([ 0 ], 'hello:world', 'up up and out broadcast')
@@ -304,7 +302,7 @@ describe('descendant', () => {
         descendant.down([ 2, 3 ], 'hello:world', 'down without self', {
             destroy: () => destroyed.push(true)
         })
-        assert.deepStrictEqual(destroyed.splice(0), [ true ], 'destroyed')
+        okay(destroyed.splice(0), [ true ], 'destroyed')
 
         descendant.across('hello:world', 1)
 
@@ -317,31 +315,31 @@ describe('descendant', () => {
         descendant.up([ 9 ], 'hello:world', 'up up and out array', {
             destroy: () => destroyed.push(true)
         })
-        assert.deepStrictEqual(destroyed.splice(0), [ true ], 'destroyed')
+        okay(destroyed.splice(0), [ true ], 'destroyed')
 
         child.connected = false
         descendant.addChild(child, 3)
         descendant.down([ 2, 3 ], 'hello:world', 'down disconneted', {
             destroy: () => destroyed.push(true)
         })
-        assert.deepStrictEqual(destroyed.splice(0), [ true ], 'destroyed')
+        okay(destroyed.splice(0), [ true ], 'destroyed')
 
         descendant.increment()
         descendant.decrement()
         descendant.decrement()
-        assert.equal(descendant.path, null, 'path with parent restored')
-        assert.deepStrictEqual(descendant.process.env, {
+        okay(descendant.path, null, 'path with parent restored')
+        okay(descendant.process.env, {
             DESCENDANT_PROCESS_PATH: '8'
         }, 'path with parent env restored')
-    })
-    it('can mock a descendant', () => {
+    }
+    {
         const test = []
         const descendant = new Descendant
         descendant.createMockProcess()
         descendant.increment()
         descendant.process.once('descendant:sent', (message) => test.push(message))
         descendant.up([ 1 ], 'up', 1)
-        assert.deepStrictEqual(test.splice(0), [{
+        okay(test.splice(0), [{
             method: 'route',
             module: 'descendant',
             path: [ 2 ],
@@ -352,7 +350,7 @@ describe('descendant', () => {
         descendant.addMockChild(3, {})
         descendant.children[3].once('descendant:sent', message => test.push(message))
         descendant.down([ 2, 3 ], 'down', 1)
-        assert.deepStrictEqual(test.splice(0), [{
+        okay(test.splice(0), [{
             method: 'route',
             module: 'descendant',
             from: [ 2 ],
@@ -362,7 +360,7 @@ describe('descendant', () => {
             body: 1
         }], 'mock parent')
         descendant.removeChild(3)
-        assert(! descendant.children[3], 'remove child by pid')
+        okay(! descendant.children[3], 'remove child by pid')
         descendant.decrement()
-    })
+    }
 })
